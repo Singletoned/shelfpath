@@ -1,0 +1,7 @@
+books:
+  example-series/first-book:
+    owned: true
+    read: true
+  example-series/second-book:
+    owned: false
+    read: true

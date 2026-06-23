@@ -1,0 +1,24 @@
+[project]
+name = "book-sequencer"
+version = "0.1.0"
+description = "Personal ordered book series tracker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["pyyaml", "starlette[full]", "uvicorn"]
+
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "I"]
+unfixable = ["F841"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ruff.lint.isort]
+known-first-party = ["booksequencer"]

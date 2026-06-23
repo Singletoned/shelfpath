@@ -1,0 +1,11 @@
+id: example-series
+title: Example Series
+author: Example Author
+order: publication
+books:
+  - id: first-book
+    title: First Book
+    position: 1
+  - id: second-book
+    title: Second Book
+    position: 2

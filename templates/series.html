@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}{{ series.title }} · Book Sequencer{%
+endblock title %} {% block content %}
+<h2>{{ series.title }}</h2>
+{% if series.author %}
+<p class="muted">{{ series.author }}</p>
+{% endif %}
+<p>
+  {{ series.owned_count }} / {{ series.book_count }} owned · {{
+  series.read_count }} / {{ series.book_count }} read · {{ series.missing_count
+  }} missing
+</p>
+
+<ol class="book-list">
+  {% for book in series.books %}
+  <li class="book {% if book.owned %}owned{% endif %}">
+    <div>
+      <div class="book-title">{{ book.position }}. {{ book.title }}</div>
+      {% if book.author and book.author != series.author %}
+      <div class="muted">{{ book.author }}</div>
+      {% endif %} {% if book.read and not book.owned %}
+      <div class="muted">Read, not currently owned</div>
+      {% endif %}
+    </div>
+    <form
+      class="checkbox-row"
+      method="post"
+      action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('series', series_id=series.id) }}"
+    >
+      <label
+        ><input
+          type="checkbox"
+          name="owned"
+          {%
+          if
+          book.owned
+          %}checked{%
+          endif
+          %}
+        />
+        Owned</label
+      >
+      <label
+        ><input
+          type="checkbox"
+          name="read"
+          {%
+          if
+          book.read
+          %}checked{%
+          endif
+          %}
+        />
+        Read</label
+      >
+      <button type="submit">Save</button>
+    </form>
+  </li>
+  {% endfor %}
+</ol>
+{% endblock content %}

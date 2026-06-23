@@ -1,0 +1,71 @@
+from __future__ import annotations
+
+import tempfile
+import unittest
+from pathlib import Path
+
+import yaml
+from starlette.testclient import TestClient
+
+import app as app_module
+
+
+class AppTests(unittest.TestCase):
+    def test_series_and_shop_pages_reflect_saved_state(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            original_data_dir = app_module.DATA_DIR
+            app_module.DATA_DIR = data_dir
+            try:
+                client = TestClient(app_module.app)
+
+                self.assertEqual(client.get("/").status_code, 200)
+                self.assertEqual(client.get("/series/example-series").status_code, 200)
+                shop_response = client.get("/shop")
+                self.assertEqual(shop_response.status_code, 200)
+                self.assertIn("Second Book", shop_response.text)
+
+                post_response = client.post(
+                    "/books/example-series/second-book/state?next=/shop",
+                    data={"owned": "on", "read": "on"},
+                    follow_redirects=False,
+                )
+                self.assertEqual(post_response.status_code, 303)
+                self.assertEqual(post_response.headers["location"], "/shop")
+                self.assertNotIn("Second Book", client.get("/shop").text)
+            finally:
+                app_module.DATA_DIR = original_data_dir
+
+    def _write_data(self, data_dir: Path) -> None:
+        series_dir = data_dir / "series"
+        series_dir.mkdir(parents=True)
+        self._write_yaml(
+            series_dir / "example-series.yaml",
+            {
+                "id": "example-series",
+                "title": "Example Series",
+                "author": "Example Author",
+                "books": [
+                    {"id": "first-book", "title": "First Book", "position": 1},
+                    {"id": "second-book", "title": "Second Book", "position": 2},
+                ],
+            },
+        )
+        self._write_yaml(
+            data_dir / "state.yaml",
+            {
+                "books": {
+                    "example-series/first-book": {"owned": True, "read": True},
+                    "example-series/second-book": {"owned": False, "read": True},
+                }
+            },
+        )
+
+    def _write_yaml(self, path: Path, data: dict) -> None:
+        with path.open("w", encoding="utf-8") as handle:
+            yaml.safe_dump(data, handle)
+
+
+if __name__ == "__main__":
+    unittest.main()

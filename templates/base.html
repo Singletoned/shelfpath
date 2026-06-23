@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Book Sequencer{% endblock title %}</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+      body {
+        margin: 0;
+        background: Canvas;
+        color: CanvasText;
+      }
+      header,
+      main {
+        margin: 0 auto;
+        max-width: 58rem;
+        padding: 1rem;
+      }
+      header {
+        border-bottom: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      a {
+        color: LinkText;
+      }
+      .cards,
+      .book-list {
+        display: grid;
+        gap: 0.75rem;
+        list-style: none;
+        padding: 0;
+      }
+      .card,
+      .book {
+        border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+        border-radius: 0.8rem;
+        padding: 1rem;
+      }
+      .book {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .book.owned {
+        opacity: 0.68;
+      }
+      .book-title {
+        font-weight: 700;
+      }
+      .muted {
+        color: color-mix(in srgb, CanvasText 62%, transparent);
+      }
+      .progress {
+        margin-top: 0.4rem;
+      }
+      .warning {
+        background: color-mix(in srgb, Mark 35%, Canvas);
+        border-radius: 0.6rem;
+        padding: 0.75rem;
+      }
+      form.checkbox-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      label {
+        align-items: center;
+        display: inline-flex;
+        gap: 0.35rem;
+        min-height: 2.6rem;
+      }
+      input[type="checkbox"] {
+        min-height: 1.4rem;
+        min-width: 1.4rem;
+      }
+      button {
+        border: 1px solid ButtonBorder;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font: inherit;
+        min-height: 2.6rem;
+        padding: 0.45rem 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Book Sequencer</h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Series</a>
+        <a href="{{ url_for('shop') }}">Shop list</a>
+      </nav>
+    </header>
+    <main>
+      {% if library and library.warnings %}
+      <section class="warning">
+        <strong>Data warnings</strong>
+        <ul>
+          {% for warning in library.warnings %}
+          <li>{{ warning }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %} {% block content %}{% endblock content %}
+    </main>
+  </body>
+</html>
