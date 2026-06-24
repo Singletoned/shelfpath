@@ -32,6 +32,7 @@ Accessed: 2026-06-23
 - The MVP should import one publication-order Discworld list.
 - Do not commit the resulting Discworld YAML; it belongs in private `data/`.
 - Review whether to include only the 41 core novels, or also related Discworld works/short stories/maps/companions later. The official page's “all 41 Discworld novels” wording is the right MVP boundary.
+- Store this provenance in the private Discworld YAML under `source`, not only in this notes file.
 
 ## The Sandman
 
@@ -65,8 +66,10 @@ Accessed: 2026-06-23
   1. Original ten trade paperback collections.
   2. 30th Anniversary editions: previous ten trade paperbacks plus Endless Nights as Volume 11, Dream Hunters as unnumbered, and Overture as Volume ∞.
   3. 2022–2023 `Book One` / `Book Two` style paperback reprints.
-- For second-hand shopping, the best starting point is probably the format most likely to be found in charity shops. That may be the original/30th-anniversary volume naming rather than the newer `Book One` grouping.
+- For second-hand shopping, keep the first import abstract rather than edition-specific. Treat the first ten collection titles as the same logical sequence where contents are roughly equivalent across original and 30th Anniversary editions.
+- Later, edition-aware ownership can distinguish owning volume 1 from one edition and volume 2 from another.
 - Do not commit the resulting Sandman YAML; it belongs in private `data/`.
+- Store this provenance in the private Sandman YAML under `source`, not only in this notes file.
 
 ## Proposed import approach after review
 

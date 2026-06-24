@@ -3,7 +3,16 @@ endblock title %} {% block content %}
 <h2>{{ series.title }}</h2>
 {% if series.author %}
 <p class="muted">{{ series.author }}</p>
-{% endif %}
+{% endif %} {% if series.source %}
+<p class="muted">
+  Source: {% if series.source.url %}<a href="{{ series.source.url }}"
+    >{{ series.source.name or series.source.url }}</a
+  >{% else %}{{ series.source.name }}{% endif %}{% if series.source.accessed %}
+  · accessed {{ series.source.accessed }}{% endif %}
+</p>
+{% if series.source.notes %}
+<p class="muted">{{ series.source.notes }}</p>
+{% endif %} {% endif %}
 <p>
   {{ series.owned_count }} / {{ series.book_count }} owned · {{
   series.read_count }} / {{ series.book_count }} read · {{ series.missing_count

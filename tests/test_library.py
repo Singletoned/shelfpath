@@ -23,6 +23,7 @@ class LibraryTests(unittest.TestCase):
             self.assertEqual(series["owned_count"], 1)
             self.assertEqual(series["read_count"], 2)
             self.assertEqual(series["missing_count"], 1)
+            self.assertEqual(series["source"]["name"], "Example Source")
             self.assertTrue(series["books"][1]["read"])
             self.assertFalse(series["books"][1]["owned"])
 
@@ -94,6 +95,12 @@ class LibraryTests(unittest.TestCase):
                 "id": "example-series",
                 "title": "Example Series",
                 "author": "Example Author",
+                "source": {
+                    "name": "Example Source",
+                    "url": "https://example.invalid/example-series",
+                    "accessed": "2026-06-23",
+                    "notes": "Example provenance.",
+                },
                 "books": books,
             },
         )

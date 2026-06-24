@@ -40,6 +40,11 @@ id: example-series
 title: Example Series
 author: Example Author
 order: publication
+source:
+  name: Example Source
+  url: https://example.invalid/example-series
+  accessed: 2026-06-23
+  notes: Example provenance for the ordered list.
 books:
   - id: first-book
     title: First Book
@@ -60,6 +65,8 @@ books:
     owned: false
     read: true
 ```
+
+`source` records provenance for future review. It is optional but recommended for real series data.
 
 `read: true` and `owned: false` is valid: you may have read a book and given it away.
 

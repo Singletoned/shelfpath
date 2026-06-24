@@ -69,6 +69,7 @@ def _validate_series(path: Path, series: dict[str, Any]) -> dict[str, Any]:
     title = _required_string(path, series, "title")
     author = _optional_string(path, series, "author")
     order = _optional_string(path, series, "order")
+    source = _optional_source(path, series)
     books = series.get("books")
     if not isinstance(books, list):
         raise LibraryValidationError(f"{path}: books must be a list.")
@@ -96,6 +97,7 @@ def _validate_series(path: Path, series: dict[str, Any]) -> dict[str, Any]:
         "title": title,
         "author": author,
         "order": order,
+        "source": source,
         "books": validated_books,
     }
 
@@ -190,6 +192,28 @@ def _optional_string(path: Path, data: dict[str, Any], field: str) -> str | None
     if not isinstance(value, str) or not value.strip():
         raise LibraryValidationError(f"{path}: {field} must be a non-empty string when set.")
     return value
+
+
+def _optional_source(path: Path, data: dict[str, Any]) -> dict[str, str] | None:
+    source = data.get("source")
+    if source is None:
+        return None
+    if not isinstance(source, dict):
+        raise LibraryValidationError(f"{path}: source must be a mapping when set.")
+
+    validated = {}
+    for field in ("name", "url", "accessed", "notes"):
+        value = source.get(field)
+        if value is None:
+            continue
+        if not isinstance(value, str) or not value.strip():
+            raise LibraryValidationError(
+                f"{path}: source.{field} must be a non-empty string when set."
+            )
+        validated[field] = value
+    if not validated:
+        raise LibraryValidationError(f"{path}: source must contain at least one field.")
+    return validated
 
 
 def _validate_bool(path: Path, book_key: str, book_state: dict[str, Any], field: str) -> None:
