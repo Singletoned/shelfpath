@@ -84,6 +84,30 @@ Accessed: 2026-06-23
 - Review note: the page metadata says “a series of 126 short books”, but extraction from the rendered ordered list found 127 entries, ending with `The Constitution of the United States`. Review the private YAML before treating the list as canonical.
 - Store this provenance in the private Penguin Little Black Classics YAML under `source`, not only in this notes file.
 
+## Bluffer's Guides
+
+### Source: Wikipedia Bluffer's Guides page
+
+- URL: https://en.wikipedia.org/wiki/Bluffer's_Guides
+- Source type: community-maintained encyclopedia
+- Useful for: initial list of known Bluffer's Guide titles and authors.
+- Evidence found: the page has a `List of books and authors` section.
+- Extraction shape: raw Wikipedia bullet list; each relevant item names an author and an italicised Bluffer's Guide title.
+- Review note: this appears to be a partial “books and authors” list rather than a canonical complete publisher catalogue. Imported 14 entries in source-list order as an initial collecting aid.
+- Store this provenance in the private Bluffer's Guides YAML under `source`, not only in this notes file.
+
+## Xenophobe's Guides
+
+### Source: Wikipedia Xenophobe's Guides page
+
+- URL: https://en.wikipedia.org/wiki/Xenophobe's_Guides
+- Source type: community-maintained encyclopedia
+- Useful for: initial title list with authors and publication dates.
+- Evidence found: the page has a `Titles` section listing Xenophobe's Guide books.
+- Extraction shape: raw Wikipedia bullet list; each item contains a title, author, publication date, and ISBN.
+- Review note: imported 34 entries in source-list order as an abstract collection list for second-hand collecting.
+- Store this provenance in the private Xenophobe's Guides YAML under `source`, not only in this notes file.
+
 ## Proposed import approach after review
 
 1. Extract candidate ordered titles from the preferred source.
