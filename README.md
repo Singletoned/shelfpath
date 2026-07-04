@@ -26,10 +26,12 @@ Edit files under `data/` for your real series and state. The `data/` directory i
 Run the app:
 
 ```sh
-uv run uvicorn app:app --reload
+uv run uvicorn app:app --reload --port 8731
 ```
 
-Open <http://127.0.0.1:8000/>.
+Open <http://127.0.0.1:8731/>.
+
+This project uses port `8731` for local development to avoid common defaults such as `8000` and `8080`.
 
 ## Data files
 
