@@ -37,6 +37,44 @@ class AppTests(unittest.TestCase):
             finally:
                 app_module.DATA_DIR = original_data_dir
 
+    def test_series_bulk_save_persists_multiple_changed_books(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            original_data_dir = app_module.DATA_DIR
+            app_module.DATA_DIR = data_dir
+            try:
+                client = TestClient(app_module.app)
+
+                response = client.post(
+                    "/series/example-series/state",
+                    data={
+                        "book_key": [
+                            "example-series/first-book",
+                            "example-series/second-book",
+                        ],
+                        "owned": [
+                            "example-series/first-book",
+                            "example-series/second-book",
+                        ],
+                        "read": [
+                            "example-series/first-book",
+                            "example-series/second-book",
+                        ],
+                    },
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 303)
+                with (data_dir / "state.yaml").open(encoding="utf-8") as handle:
+                    state = yaml.safe_load(handle)
+                self.assertTrue(state["books"]["example-series/first-book"]["owned"])
+                self.assertTrue(state["books"]["example-series/second-book"]["owned"])
+                self.assertTrue(state["books"]["example-series/first-book"]["read"])
+                self.assertTrue(state["books"]["example-series/second-book"]["read"])
+            finally:
+                app_module.DATA_DIR = original_data_dir
+
     def _write_data(self, data_dir: Path) -> None:
         series_dir = data_dir / "series"
         series_dir.mkdir(parents=True)

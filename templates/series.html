@@ -5,10 +5,12 @@ endblock title %} {% block content %}
 <p class="muted">{{ series.author }}</p>
 {% endif %} {% if series.source %}
 <p class="muted">
-  Source: {% if series.source.url %}<a href="{{ series.source.url }}"
+  Source: {% if series.source.url %}
+  <a href="{{ series.source.url }}"
     >{{ series.source.name or series.source.url }}</a
-  >{% else %}{{ series.source.name }}{% endif %}{% if series.source.accessed %}
-  · accessed {{ series.source.accessed }}{% endif %}
+  >
+  {% else %} {{ series.source.name }} {% endif %} {% if series.source.accessed
+  %} · accessed {{ series.source.accessed }}{% endif %}
 </p>
 {% if series.source.notes %}
 <p class="muted">{{ series.source.notes }}</p>
@@ -19,51 +21,53 @@ endblock title %} {% block content %}
   }} missing
 </p>
 
-<ol class="book-list">
-  {% for book in series.books %}
-  <li class="book {% if book.owned %}owned{% endif %}">
-    <div>
-      <div class="book-title">{{ book.position }}. {{ book.title }}</div>
-      {% if book.author and book.author != series.author %}
-      <div class="muted">{{ book.author }}</div>
-      {% endif %} {% if book.read and not book.owned %}
-      <div class="muted">Read, not currently owned</div>
-      {% endif %}
-    </div>
-    <form
-      class="checkbox-row"
-      method="post"
-      action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('series', series_id=series.id) }}"
-    >
-      <label
-        ><input
-          type="checkbox"
-          name="owned"
-          {%
-          if
-          book.owned
-          %}checked{%
-          endif
-          %}
-        />
-        Owned</label
-      >
-      <label
-        ><input
-          type="checkbox"
-          name="read"
-          {%
-          if
-          book.read
-          %}checked{%
-          endif
-          %}
-        />
-        Read</label
-      >
-      <button type="submit">Save</button>
-    </form>
-  </li>
-  {% endfor %}
-</ol>
+<form method="post" action="{{ url_for('series_state', series_id=series.id) }}">
+  <p><button type="submit">Save all changes</button></p>
+  <ol class="book-list">
+    {% for book in series.books %}
+    <li class="book {% if book.owned %}owned{% endif %}">
+      <div>
+        <div class="book-title">{{ book.position }}. {{ book.title }}</div>
+        {% if book.author and book.author != series.author %}
+        <div class="muted">{{ book.author }}</div>
+        {% endif %} {% if book.read and not book.owned %}
+        <div class="muted">Read, not currently owned</div>
+        {% endif %}
+      </div>
+      <input type="hidden" name="book_key" value="{{ book['key'] }}" />
+      <div class="checkbox-row">
+        <label>
+          <input
+            type="checkbox"
+            name="owned"
+            value="{{ book['key'] }}"
+            {%
+            if
+            book.owned
+            %}checked{%
+            endif
+            %}
+          />
+          Owned
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            name="read"
+            value="{{ book['key'] }}"
+            {%
+            if
+            book.read
+            %}checked{%
+            endif
+            %}
+          />
+          Read
+        </label>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  <p><button type="submit">Save all changes</button></p>
+</form>
 {% endblock content %}

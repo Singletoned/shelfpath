@@ -7,7 +7,7 @@ from starlette.responses import RedirectResponse
 from starlette.routing import Route
 from starlette.templating import Jinja2Templates
 
-from booksequencer.library import load_library, save_book_state
+from booksequencer.library import load_library, save_book_state, save_book_states
 
 PROJECT_DIR = pathlib.Path(__file__).parent
 DATA_DIR = PROJECT_DIR / "data"
@@ -35,6 +35,24 @@ async def series_get(request):
 async def shop_get(request):
     library = load_library(DATA_DIR)
     return templates.TemplateResponse(request, "shop.html", {"library": library})
+
+
+async def series_state_post(request):
+    series_id = request.path_params["series_id"]
+    form = await request.form()
+    book_keys = form.getlist("book_key")
+    owned_keys = set(form.getlist("owned"))
+    read_keys = set(form.getlist("read"))
+    save_book_states(
+        DATA_DIR,
+        {
+            book_key: {"owned": book_key in owned_keys, "read": book_key in read_keys}
+            for book_key in book_keys
+        },
+    )
+    return RedirectResponse(
+        request.url_for("series", series_id=series_id), status_code=HTTP_SEE_OTHER
+    )
 
 
 async def book_state_post(request):
@@ -69,6 +87,12 @@ app = Starlette(
     routes=[
         Route("/", index_get, methods=("GET",), name="index"),
         Route("/series/{series_id}", series_get, methods=("GET",), name="series"),
+        Route(
+            "/series/{series_id}/state",
+            series_state_post,
+            methods=("POST",),
+            name="series_state",
+        ),
         Route("/shop", shop_get, methods=("GET",), name="shop"),
         Route(
             "/books/{book_key:path}/state", book_state_post, methods=("POST",), name="book_state"

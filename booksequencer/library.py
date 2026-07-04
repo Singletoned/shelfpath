@@ -33,14 +33,20 @@ def load_library(data_dir: Path) -> dict[str, Any]:
 
 
 def save_book_state(data_dir: Path, book_key: str, owned: bool, read: bool) -> None:
+    save_book_states(data_dir, {book_key: {"owned": owned, "read": read}})
+
+
+def save_book_states(data_dir: Path, book_states: dict[str, dict[str, bool]]) -> None:
     library = load_library(data_dir)
-    if book_key not in library["books_by_key"]:
-        raise LibraryValidationError(f"Unknown book key: {book_key}")
+    unknown_keys = set(book_states) - set(library["books_by_key"])
+    if unknown_keys:
+        raise LibraryValidationError(f"Unknown book keys: {', '.join(sorted(unknown_keys))}")
 
     state_path = data_dir / STATE_FILE_NAME
     state = _load_state(state_path)
     books = state.setdefault(BOOK_STATE_ROOT, {})
-    books[book_key] = {"owned": owned, "read": read}
+    for book_key, book_state in book_states.items():
+        books[book_key] = {"owned": book_state["owned"], "read": book_state["read"]}
     _write_yaml(state_path, state)
 
 
