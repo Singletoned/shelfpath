@@ -37,6 +37,56 @@ class AppTests(unittest.TestCase):
             finally:
                 app_module.DATA_DIR = original_data_dir
 
+    def test_series_page_can_sort_by_title(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            original_data_dir = app_module.DATA_DIR
+            app_module.DATA_DIR = data_dir
+            try:
+                client = TestClient(app_module.app)
+
+                response = client.get("/series/example-series?sort=title")
+
+                self.assertEqual(response.status_code, 200)
+                self.assertLess(
+                    response.text.index("Aardvark Book"), response.text.index("First Book")
+                )
+                self.assertIn("Alphabetical", response.text)
+                self.assertIn("Series order", response.text)
+            finally:
+                app_module.DATA_DIR = original_data_dir
+
+    def test_series_bulk_save_preserves_sort_order(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            original_data_dir = app_module.DATA_DIR
+            app_module.DATA_DIR = data_dir
+            try:
+                client = TestClient(app_module.app)
+
+                response = client.post(
+                    "/series/example-series/state?sort=title",
+                    data={
+                        "book_key": [
+                            "example-series/first-book",
+                            "example-series/second-book",
+                        ],
+                        "owned": ["example-series/second-book"],
+                        "read": ["example-series/second-book"],
+                    },
+                    follow_redirects=False,
+                )
+
+                self.assertEqual(response.status_code, 303)
+                self.assertEqual(
+                    response.headers["location"],
+                    "http://testserver/series/example-series?sort=title",
+                )
+            finally:
+                app_module.DATA_DIR = original_data_dir
+
     def test_series_bulk_save_persists_multiple_changed_books(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -87,6 +137,7 @@ class AppTests(unittest.TestCase):
                 "books": [
                     {"id": "first-book", "title": "First Book", "position": 1},
                     {"id": "second-book", "title": "Second Book", "position": 2},
+                    {"id": "aardvark-book", "title": "Aardvark Book", "position": 3},
                 ],
             },
         )
@@ -96,6 +147,7 @@ class AppTests(unittest.TestCase):
                 "books": {
                     "example-series/first-book": {"owned": True, "read": True},
                     "example-series/second-book": {"owned": False, "read": True},
+                    "example-series/aardvark-book": {"owned": False, "read": False},
                 }
             },
         )

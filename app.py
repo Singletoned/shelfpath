@@ -23,12 +23,13 @@ async def index_get(request):
 
 async def series_get(request):
     series_id = request.path_params["series_id"]
+    sort_order = request.query_params.get("sort", "series")
     library = load_library(DATA_DIR)
-    series = _find_series(library, series_id)
+    series = _sorted_series(_find_series(library, series_id), sort_order)
     return templates.TemplateResponse(
         request,
         "series.html",
-        {"library": library, "series": series},
+        {"library": library, "series": series, "sort_order": sort_order},
     )
 
 
@@ -50,9 +51,11 @@ async def series_state_post(request):
             for book_key in book_keys
         },
     )
-    return RedirectResponse(
-        request.url_for("series", series_id=series_id), status_code=HTTP_SEE_OTHER
-    )
+    redirect_url = request.url_for("series", series_id=series_id)
+    sort_order = request.query_params.get("sort")
+    if sort_order:
+        redirect_url = f"{redirect_url}?sort={sort_order}"
+    return RedirectResponse(redirect_url, status_code=HTTP_SEE_OTHER)
 
 
 async def book_state_post(request):
@@ -72,6 +75,23 @@ def _find_series(library, series_id):
         if series["id"] == series_id:
             return series
     raise ValueError(f"Unknown series id: {series_id}")
+
+
+def _sorted_series(series, sort_order):
+    if sort_order not in {"series", "title"}:
+        raise ValueError(f"Unknown series sort order: {sort_order}")
+    books = list(series["books"])
+    if sort_order == "title":
+        books.sort(key=lambda book: _sort_title(book["title"]))
+    return {**series, "books": books}
+
+
+def _sort_title(title):
+    lowered = title.casefold()
+    for article in ("the ", "a ", "an "):
+        if lowered.startswith(article):
+            return lowered[len(article) :]
+    return lowered
 
 
 def _redirect_target(request, book_key):

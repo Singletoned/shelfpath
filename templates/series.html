@@ -21,7 +21,23 @@ endblock title %} {% block content %}
   }} missing
 </p>
 
-<form method="post" action="{{ url_for('series_state', series_id=series.id) }}">
+<div class="actions" aria-label="Sort books">
+  <a
+    class="button {% if sort_order == 'series' %}active{% endif %}"
+    href="{{ url_for('series', series_id=series.id) }}?sort=series"
+    >Series order</a
+  >
+  <a
+    class="button {% if sort_order == 'title' %}active{% endif %}"
+    href="{{ url_for('series', series_id=series.id) }}?sort=title"
+    >Alphabetical</a
+  >
+</div>
+
+<form
+  method="post"
+  action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}"
+>
   <p><button type="submit">Save all changes</button></p>
   <ol class="book-list">
     {% for book in series.books %}
