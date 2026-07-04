@@ -71,6 +71,19 @@ Accessed: 2026-06-23
 - Do not commit the resulting Sandman YAML; it belongs in private `data/`.
 - Store this provenance in the private Sandman YAML under `source`, not only in this notes file.
 
+## Penguin Little Black Classics
+
+### Preferred source: Penguin Little Black Classics list
+
+- URL: https://www.littleblackclassics.com/list.html
+- Source type: publisher microsite
+- Useful for: publisher list order for collecting Penguin Little Black Classics.
+- Evidence found: the page describes the collection as Penguin Little Black Classics and renders an ordered list of titles with authors and blurbs.
+- Extraction shape: HTML ordered list with `id="list-content"`; each item has `data-index`, a `title` span, and usually an `author` span.
+- Proposed use: primary source for title/order import.
+- Review note: the page metadata says “a series of 126 short books”, but extraction from the rendered ordered list found 127 entries, ending with `The Constitution of the United States`. Review the private YAML before treating the list as canonical.
+- Store this provenance in the private Penguin Little Black Classics YAML under `source`, not only in this notes file.
+
 ## Proposed import approach after review
 
 1. Extract candidate ordered titles from the preferred source.
