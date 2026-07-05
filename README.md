@@ -49,15 +49,40 @@ This project uses port `8731` for local development to avoid common defaults suc
 
 ## Supabase setup
 
-Run `migrations/001_initial_supabase.sql` in the Supabase SQL editor.
+Supabase schema changes are managed from this repository. Do not paste migrations into the dashboard for normal development.
 
-Then import catalogue data from the separate `data/` repository. This requires a service-role key set only in your local shell or `.env`; do not commit it.
+Install and authenticate the Supabase CLI once:
 
 ```sh
-uv run --env-file .env python scripts/import_catalogue_to_supabase.py
+brew install supabase/tap/supabase
+supabase login
 ```
 
-The app uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
+Link this checkout to the Shelfpath Supabase project once:
+
+```sh
+just supabase-link
+```
+
+Apply database migrations with:
+
+```sh
+just db-push
+```
+
+Import catalogue data from the separate `data/` repository with:
+
+```sh
+just catalogue-import
+```
+
+`just catalogue-import` requires `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
+
+To apply both database migrations and catalogue import:
+
+```sh
+just supabase-deploy
+```
 
 ## Data files
 
@@ -100,7 +125,7 @@ books:
 
 ## Deployment
 
-`render.yaml` defines a Render web service for the Starlette app. Configure these environment variables in Render:
+`render.yaml` defines a Render web service for the Starlette app. Render deployment should be connected to the repository once, then normal app changes deploy from git. Configure these environment variables in Render:
 
 ```text
 SHELFPATH_STORAGE=supabase
@@ -110,7 +135,7 @@ SUPABASE_URL=https://pkrxfruhnjsifclnhjyc.supabase.co
 SUPABASE_PUBLISHABLE_KEY=<publishable key>
 ```
 
-In Supabase Auth URL configuration, add the deployed Render URL and later `https://shelfpath.app` as allowed redirect URLs, including `/auth/callback`.
+In Supabase Auth URL configuration, add the deployed Render URL and later `https://shelfpath.app` as allowed redirect URLs, including `/auth/callback`. This is one-time provider setup, not a per-change step.
 
 ## Views
 
