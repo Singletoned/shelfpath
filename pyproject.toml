@@ -20,5 +20,8 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
 
+[dependency-groups]
+dev = ["ruff>=0.15.20"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["booksequencer"]
