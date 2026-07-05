@@ -49,7 +49,7 @@ This project uses port `8731` for local development to avoid common defaults suc
 
 ## Supabase setup
 
-Supabase schema changes are managed from this repository. Do not paste migrations into the dashboard for normal development.
+Supabase schema changes are managed from this repository. Do not paste migrations into the dashboard for normal development. On GitHub, `.github/workflows/supabase.yml` pushes migrations automatically when `supabase/**` changes on `main`, once the required repository secrets are configured.
 
 Install and authenticate the Supabase CLI once:
 
@@ -78,11 +78,20 @@ just catalogue-import
 
 `just catalogue-import` requires `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
 
-To apply both database migrations and catalogue import:
+To apply both database migrations and catalogue import locally:
 
 ```sh
 just supabase-deploy
 ```
+
+For automated GitHub migration deploys, configure repository secrets:
+
+```text
+SUPABASE_ACCESS_TOKEN
+SUPABASE_DB_PASSWORD
+```
+
+`SUPABASE_ACCESS_TOKEN` comes from your Supabase account access tokens. `SUPABASE_DB_PASSWORD` is the database password for the Supabase project. Catalogue import is not part of this GitHub workflow because the catalogue YAML lives in the separate private `data/` repository.
 
 ## Data files
 

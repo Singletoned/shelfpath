@@ -9,7 +9,15 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_DIR"
 
 if [ ! -f "supabase/.temp/project-ref" ] || [ "$(cat supabase/.temp/project-ref 2>/dev/null || true)" != "$PROJECT_REF" ]; then
-	supabase link --project-ref "$PROJECT_REF"
+	if [ -n "${SUPABASE_DB_PASSWORD:-}" ]; then
+		supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+	else
+		supabase link --project-ref "$PROJECT_REF"
+	fi
 fi
 
-supabase db push
+if [ -n "${SUPABASE_DB_PASSWORD:-}" ]; then
+	supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+else
+	supabase db push --linked
+fi

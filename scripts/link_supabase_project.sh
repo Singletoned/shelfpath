@@ -5,4 +5,8 @@ PROJECT_REF="pkrxfruhnjsifclnhjyc"
 
 "$(dirname "$0")/require_supabase_cli.sh"
 
-supabase link --project-ref "$PROJECT_REF"
+if [ -n "${SUPABASE_DB_PASSWORD:-}" ]; then
+	supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+else
+	supabase link --project-ref "$PROJECT_REF"
+fi
