@@ -2,7 +2,7 @@
 
 ## Project Context
 
-Book Sequencer is a personal, mobile-friendly tracker for ordered book series. Its primary purpose is to help while browsing second-hand book shops: quickly answer whether a book is already owned, whether it has been read, and where it sits in a series.
+Shelfpath is a mobile-friendly tracker for ordered book series and shared collecting lists. Its primary purpose is to help while browsing second-hand book shops: quickly answer whether a book is already owned, whether it has been read, and where it sits in a series.
 
 The first useful milestone is:
 
@@ -25,7 +25,7 @@ The MVP should:
 
 - Treat lists/series as the main user experience.
 - Load ordered book lists from human-editable YAML.
-- Store personal ownership/read state in human-editable YAML.
+- Store ownership/read state in human-editable YAML for the current local implementation.
 - Keep all real user data out of git.
 - Let the user mark books as owned and/or read.
 - Provide a shop-focused view of books not currently owned.
@@ -37,7 +37,8 @@ The MVP should:
 - Use YAML files for data because the dataset is small and manually maintained.
 - Do not commit personal book data, user state, databases, or generated runtime data.
 - Commit only examples/templates such as `data.example/`.
-- Gitignore the real `data/` directory.
+- Gitignore the real `data/` directory in the app repository.
+- Treat `data/` as its own separately committed repository when present.
 - Focus on `owned` and `read`; ignore explicit `wanted` for now.
 - `read: true` while `owned: false` is valid because read books may have been given away.
 - Barcode/ISBN scanning is not part of the MVP.

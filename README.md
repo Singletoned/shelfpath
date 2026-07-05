@@ -1,11 +1,13 @@
-# Book Sequencer
+# Shelfpath
 
-Book Sequencer is a personal checklist for ordered book series. It helps answer two questions while browsing second-hand book shops:
+Shelfpath is a checklist for ordered book series and shared collecting lists. It helps answer two questions while browsing second-hand book shops:
 
 - Do I currently own this book?
 - Have I already read it?
 
-The app is intentionally file-backed for now. Real book data and personal state live outside git.
+The app is file-backed for now. Real book data and personal state live in the separate `data/` repository rather than in this app repository.
+
+The intended public app/domain name is `shelfpath.app`.
 
 ## Setup
 
@@ -21,7 +23,7 @@ Create private local data from the committed example:
 cp -R data.example data
 ```
 
-Edit files under `data/` for your real series and state. The `data/` directory is gitignored and should not be committed.
+Edit files under `data/` for your real series and state. The `data/` directory is gitignored by this app repository because it is managed as its own git repository.
 
 Run the app:
 

@@ -1,4 +1,4 @@
-# Book Sequencer
+# Shelfpath
 
 ## Problem Statement
 
@@ -6,7 +6,7 @@ Second-hand book shopping is difficult when collecting long or ordered series: i
 
 ## Target Audience
 
-The initial user is a single personal collector who reads series in order and buys many books second hand. The app should optimise for fast mobile use in shops rather than for public discovery, social features, or broad catalogue management.
+The initial user is a personal collector who reads series in order and buys many books second hand. The app now also needs to support multiple users and shared lists. It should optimise for fast mobile use in shops rather than for public discovery or broad catalogue management.
 
 ## Goals
 
@@ -41,11 +41,12 @@ The initial user is a single personal collector who reads series in order and bu
 - Offline browsing is desirable eventually, but offline writes can wait.
 - Book list import can be semi-manual because new series are added only occasionally.
 - Barcode and ISBN scanning are nice-to-have, not MVP requirements.
-- This is for personal use first; multi-user support is not currently required.
+- Multi-user support and shared lists are now required.
+- The intended public app/domain name is `shelfpath.app`.
 
 ## Non-Goals
 
-- Building a public social book platform.
+- Building a public social book platform; shared lists are for practical collaboration rather than social discovery.
 - Automatically fetching all series data in the MVP.
 - Supporting cover recognition as a core requirement.
 - Managing every possible bibliographic detail before the basic checklist works.

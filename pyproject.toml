@@ -1,7 +1,7 @@
 [project]
-name = "book-sequencer"
+name = "shelfpath"
 version = "0.1.0"
-description = "Personal ordered book series tracker"
+description = "Ordered book series and shared collecting list tracker"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["pyyaml", "starlette[full]", "uvicorn"]
