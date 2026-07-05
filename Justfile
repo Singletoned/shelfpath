@@ -14,6 +14,6 @@ db-push:
     ./scripts/deploy_database.sh
 
 catalogue-import:
-    uv run --env-file .env python scripts/import_catalogue_to_supabase.py
+    PYTHONPATH=. uv run --env-file .env python scripts/import_catalogue_to_supabase.py
 
 supabase-deploy: db-push catalogue-import
