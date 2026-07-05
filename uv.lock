@@ -264,6 +264,7 @@ name = "shelfpath"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "httpx" },
     { name = "pyyaml" },
     { name = "starlette", extra = ["full"] },
     { name = "uvicorn" },
@@ -271,6 +272,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx" },
     { name = "pyyaml" },
     { name = "starlette", extras = ["full"] },
     { name = "uvicorn" },

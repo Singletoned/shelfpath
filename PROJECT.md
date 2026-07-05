@@ -14,7 +14,7 @@ The initial user is a personal collector who reads series in order and buys many
 - Make it easy to see which books are still needed while standing in a shop.
 - Support occasional semi-manual import of ordered book lists for new series.
 - Keep the MVP simple and useful before adding scanning or richer metadata.
-- Preserve the user's catalogue with some form of backup or sync over time.
+- Preserve user catalogues through Supabase-backed storage and account login.
 
 ## Key Features
 
@@ -61,7 +61,7 @@ The initial user is a personal collector who reads series in order and buys many
 ## Open Questions / Risks
 
 - Whether a mobile-friendly web app is sufficient long term, or whether a native iPhone app is needed for better scanning and offline behaviour.
-- Which backup or sync mechanism is most appropriate.
+- How much Supabase/Auth functionality is needed before the sharing workflow is pleasant.
 - How much edition metadata is needed without turning the app into a full bibliographic database.
 - Which external book metadata sources, if any, are worth integrating later.
 

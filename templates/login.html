@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}Sign in · Shelfpath{% endblock title
+%} {% block content %}
+<h2>Sign in</h2>
+<p>Enter your email address and Supabase will send you a magic sign-in link.</p>
+
+{% if not supabase_url or not supabase_publishable_key %}
+<p class="warning">Supabase is not configured for this environment.</p>
+{% else %}
+<form id="login-form">
+  <input type="hidden" id="next-url" value="{{ next_url }}" />
+  <label>
+    Email
+    <input type="email" id="email" required autocomplete="email" />
+  </label>
+  <button type="submit">Send magic link</button>
+</form>
+<p id="login-message" class="muted"></p>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const supabase = createClient(
+    "{{ supabase_url }}",
+    "{{ supabase_publishable_key }}",
+  );
+  const form = document.querySelector("#login-form");
+  const message = document.querySelector("#login-message");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = document.querySelector("#email").value;
+    const next = document.querySelector("#next-url").value || "/";
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) {
+      message.textContent = error.message;
+      return;
+    }
+    message.textContent = "Check your email for a sign-in link.";
+  });
+</script>
+{% endif %} {% endblock content %}

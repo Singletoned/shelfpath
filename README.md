@@ -5,7 +5,7 @@ Shelfpath is a checklist for ordered book series and shared collecting lists. It
 - Do I currently own this book?
 - Have I already read it?
 
-The app is file-backed for now. Real book data and personal state live in the separate `data/` repository rather than in this app repository.
+The app is moving to the deployed architecture: Supabase Auth for users, Supabase Postgres for shared lists and owned/read state, and this Starlette app for the web UI. The separate `data/` repository remains the import/source-data workspace for catalogue YAML.
 
 The intended public app/domain name is `shelfpath.app`.
 
@@ -17,27 +17,51 @@ Install dependencies:
 uv sync
 ```
 
-Create private local data from the committed example:
+Copy the environment template:
 
 ```sh
-cp -R data.example data
+cp .env.example .env
 ```
 
-Edit files under `data/` for your real series and state. The `data/` directory is gitignored by this app repository because it is managed as its own git repository.
+Set a random `SHELFPATH_SESSION_SECRET` in `.env`. For Supabase-backed local development, set:
+
+```sh
+SHELFPATH_STORAGE=supabase
+SUPABASE_URL=https://pkrxfruhnjsifclnhjyc.supabase.co
+SUPABASE_PUBLISHABLE_KEY=...
+```
+
+For file-backed development or tests against local YAML, set:
+
+```sh
+SHELFPATH_STORAGE=file
+```
 
 Run the app:
 
 ```sh
-uv run uvicorn app:app --reload --port 8731
+uv run --env-file .env uvicorn app:app --reload --port 8731
 ```
 
 Open <http://127.0.0.1:8731/>.
 
 This project uses port `8731` for local development to avoid common defaults such as `8000` and `8080`.
 
+## Supabase setup
+
+Run `migrations/001_initial_supabase.sql` in the Supabase SQL editor.
+
+Then import catalogue data from the separate `data/` repository. This requires a service-role key set only in your local shell or `.env`; do not commit it.
+
+```sh
+uv run --env-file .env python scripts/import_catalogue_to_supabase.py
+```
+
+The app uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
+
 ## Data files
 
-Series live in `data/series/*.yaml`:
+Catalogue source/import data lives in the separate `data/` repository. Series YAML files live in `data/series/*.yaml`:
 
 ```yaml
 id: example-series
@@ -58,7 +82,7 @@ books:
     position: 2
 ```
 
-Personal state lives in `data/state.yaml`:
+Legacy file-backed personal state lives in `data/state.yaml`:
 
 ```yaml
 books:
@@ -74,8 +98,23 @@ books:
 
 `read: true` and `owned: false` is valid: you may have read a book and given it away.
 
+## Deployment
+
+`render.yaml` defines a Render web service for the Starlette app. Configure these environment variables in Render:
+
+```text
+SHELFPATH_STORAGE=supabase
+SHELFPATH_DEBUG=false
+SHELFPATH_SESSION_SECRET=<generated secret>
+SUPABASE_URL=https://pkrxfruhnjsifclnhjyc.supabase.co
+SUPABASE_PUBLISHABLE_KEY=<publishable key>
+```
+
+In Supabase Auth URL configuration, add the deployed Render URL and later `https://shelfpath.app` as allowed redirect URLs, including `/auth/callback`.
+
 ## Views
 
+- `/login` signs in with Supabase magic-link auth.
 - `/` lists series and progress.
 - `/series/{series_id}` shows a series in order with owned/read controls.
 - `/shop` shows books that are not currently owned, grouped by series.

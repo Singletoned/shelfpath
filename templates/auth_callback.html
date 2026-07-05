@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block title %}Signing in · Shelfpath{% endblock
+title %} {% block content %}
+<h2>Signing in…</h2>
+<p id="auth-message" class="muted">Finishing your sign-in.</p>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const supabase = createClient(
+    "{{ supabase_url }}",
+    "{{ supabase_publishable_key }}",
+  );
+  const message = document.querySelector("#auth-message");
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("next") || "/";
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    message.textContent = error?.message || "No Supabase session was found.";
+  } else {
+    const response = await fetch("/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: data.session.access_token }),
+    });
+    if (response.ok) {
+      window.location.replace(next);
+    } else {
+      message.textContent = await response.text();
+    }
+  }
+</script>
+{% endblock content %}

@@ -29,9 +29,16 @@
         border-bottom: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
       }
       nav {
+        align-items: center;
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
+      }
+      .nav-form {
+        align-items: center;
+        display: inline-flex;
+        gap: 0.75rem;
+        margin: 0;
       }
       a {
         color: LinkText;
@@ -119,6 +126,14 @@
       <nav>
         <a href="{{ url_for('index') }}">Series</a>
         <a href="{{ url_for('shop') }}">Shop list</a>
+        {% if current_user %}
+        <form method="post" action="{{ url_for('logout') }}" class="nav-form">
+          <span class="muted">{{ current_user.email }}</span>
+          <button type="submit">Sign out</button>
+        </form>
+        {% else %}
+        <a href="{{ url_for('login') }}">Sign in</a>
+        {% endif %}
       </nav>
     </header>
     <main>
