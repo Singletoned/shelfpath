@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Route
 from starlette.templating import Jinja2Templates
 
-from booksequencer.auth import current_user, redirect_to_login, verify_supabase_token
+from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
 from booksequencer.store import Store, build_store
 
@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory=DEFAULT_TEMPLATE_DIR)
 
 
 async def index_get(request):
-    user = current_user(request)
+    user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     library = await request.app.state.store.load_library(user)
@@ -24,7 +24,7 @@ async def index_get(request):
 
 
 async def series_get(request):
-    user = current_user(request)
+    user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     series_id = request.path_params["series_id"]
@@ -39,7 +39,7 @@ async def series_get(request):
 
 
 async def shop_get(request):
-    user = current_user(request)
+    user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     library = await request.app.state.store.load_library(user)
@@ -79,12 +79,18 @@ async def auth_session_post(request):
         raise ValueError("Supabase auth requires SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.")
     payload = await request.json()
     access_token = payload.get("access_token")
+    refresh_token = payload.get("refresh_token")
+    expires_at = payload.get("expires_at")
     if not isinstance(access_token, str) or not access_token:
         return JSONResponse({"error": "access_token is required"}, status_code=400)
+    if not isinstance(refresh_token, str) or not refresh_token:
+        return JSONResponse({"error": "refresh_token is required"}, status_code=400)
     user = await verify_supabase_token(
         settings.supabase_url,
         settings.supabase_publishable_key,
         access_token,
+        refresh_token,
+        expires_at if isinstance(expires_at, int) else None,
     )
     request.session["user"] = user
     return JSONResponse({"ok": True})
@@ -96,7 +102,7 @@ async def logout_post(request):
 
 
 async def series_state_post(request):
-    user = current_user(request)
+    user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     series_id = request.path_params["series_id"]
@@ -119,7 +125,7 @@ async def series_state_post(request):
 
 
 async def book_state_post(request):
-    user = current_user(request)
+    user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     book_key = request.path_params["book_key"]
@@ -174,6 +180,17 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
         same_site="lax",
     )
     return app
+
+
+async def _user_for_request(request):
+    settings = request.app.state.settings
+    if settings.storage != "supabase":
+        return current_user(request)
+    return await fresh_user(
+        request,
+        settings.supabase_url,
+        settings.supabase_publishable_key,
+    )
 
 
 def _context(request, **values):

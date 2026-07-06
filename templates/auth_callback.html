@@ -20,7 +20,11 @@ title %} {% block content %}
     const response = await fetch("/auth/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: data.session.access_token }),
+      body: JSON.stringify({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at,
+      }),
     });
     if (response.ok) {
       window.location.replace(next);
