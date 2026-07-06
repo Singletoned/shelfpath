@@ -40,12 +40,12 @@ SHELFPATH_STORAGE=file
 Run the app:
 
 ```sh
-uv run --env-file .env uvicorn app:app --reload --port 8731
+just run
 ```
 
 Open <http://127.0.0.1:8731/>.
 
-This project uses port `8731` for local development to avoid common defaults such as `8000` and `8080`.
+This project hardcodes port `8731` in the local `just run` task and Supabase local redirect configuration to avoid common defaults such as `8000` and `8080`.
 
 ## Supabase setup
 

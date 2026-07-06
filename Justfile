@@ -7,6 +7,9 @@ check:
     taidy .
     python -m unittest discover -s tests
 
+run:
+    uv run --env-file .env uvicorn app:app --reload --host 127.0.0.1 --port 8731
+
 supabase-link:
     ./scripts/link_supabase_project.sh
 
