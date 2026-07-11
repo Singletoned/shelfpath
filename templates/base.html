@@ -128,6 +128,7 @@
         <a href="{{ url_for('shop') }}">Shop list</a>
         {% if current_user %}
         <a href="{{ url_for('lists') }}">Lists</a>
+        <a href="{{ url_for('suggest') }}">Suggest series</a>
         {% if library and library.lists|length > 1 %}
         <form
           method="post"

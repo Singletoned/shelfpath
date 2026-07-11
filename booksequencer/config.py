@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from booksequencer.ai_series import DEFAULT_OPENAI_MODEL
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DATA_DIR = PROJECT_DIR / "data"
 DEFAULT_TEMPLATE_DIR = PROJECT_DIR / "templates"
@@ -18,6 +20,8 @@ class Settings:
     supabase_publishable_key: str | None
     session_secret: str
     debug: bool
+    openai_api_key: str | None
+    openai_model: str
 
 
 def load_settings() -> Settings:
@@ -32,6 +36,8 @@ def load_settings() -> Settings:
         supabase_publishable_key=publishable_key,
         session_secret=os.environ.get("SHELFPATH_SESSION_SECRET", "development-only-change-me"),
         debug=os.environ.get("SHELFPATH_DEBUG", _default_debug()).lower() == "true",
+        openai_api_key=os.environ.get("OPENAI_API_KEY"),
+        openai_model=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
     )
 
 

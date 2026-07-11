@@ -137,6 +137,8 @@ class AppTests(unittest.TestCase):
             supabase_publishable_key="test-key",
             session_secret="test-secret",
             debug=True,
+            openai_api_key=None,
+            openai_model="test-model",
         )
 
     def _write_data(self, data_dir: Path) -> None:
@@ -179,6 +181,24 @@ class FailingStore:
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def share_list(self, user, list_id, email, role):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def can_suggest_series(self, user):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def suggestion_count_today(self, user):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def create_series_suggestion(self, user, prompt, status, proposal=None, error=None):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def get_series_suggestion(self, user, suggestion_id):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def approve_series_suggestion(self, user, suggestion_id):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def reject_series_suggestion(self, user, suggestion_id):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def save_book_state(self, user, book_key, owned, read, list_id=None):

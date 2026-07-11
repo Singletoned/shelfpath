@@ -8,6 +8,7 @@ import httpx
 from booksequencer.library import load_library, save_book_state, save_book_states
 
 DEFAULT_LIST_NAME = "My books"
+SUGGESTION_DAILY_LIMIT = 5
 
 
 class Store(Protocol):
@@ -23,6 +24,31 @@ class Store(Protocol):
         list_id: str,
         email: str,
         role: str,
+    ) -> None: ...
+
+    async def can_suggest_series(self, user: dict[str, Any] | None) -> bool: ...
+
+    async def suggestion_count_today(self, user: dict[str, Any] | None) -> int: ...
+
+    async def create_series_suggestion(
+        self,
+        user: dict[str, Any] | None,
+        prompt: str,
+        status: str,
+        proposal: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> dict[str, Any]: ...
+
+    async def get_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> dict[str, Any]: ...
+
+    async def approve_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> None: ...
+
+    async def reject_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
     ) -> None: ...
 
     async def save_book_state(
@@ -65,6 +91,37 @@ class FileStore:
         role: str,
     ) -> None:
         raise ValueError("Shared lists require Supabase storage.")
+
+    async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:
+        return False
+
+    async def suggestion_count_today(self, user: dict[str, Any] | None) -> int:
+        return 0
+
+    async def create_series_suggestion(
+        self,
+        user: dict[str, Any] | None,
+        prompt: str,
+        status: str,
+        proposal: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> dict[str, Any]:
+        raise ValueError("AI series suggestions require Supabase storage.")
+
+    async def get_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> dict[str, Any]:
+        raise ValueError("AI series suggestions require Supabase storage.")
+
+    async def approve_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> None:
+        raise ValueError("AI series suggestions require Supabase storage.")
+
+    async def reject_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> None:
+        raise ValueError("AI series suggestions require Supabase storage.")
 
     async def save_book_state(
         self,
@@ -152,6 +209,87 @@ class SupabaseStore:
                 "member_email": normalized_email,
                 "member_role": role,
             },
+        )
+
+    async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:
+        current_user = _require_user(user)
+        rows = await self._request(
+            current_user,
+            "GET",
+            "/rest/v1/ai_series_suggestion_allowed_users?select=id&limit=1",
+        )
+        return bool(rows)
+
+    async def suggestion_count_today(self, user: dict[str, Any] | None) -> int:
+        current_user = _require_user(user)
+        rows = await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/count_ai_series_suggestions_today",
+            json={},
+        )
+        if not isinstance(rows, int):
+            raise ValueError("Supabase suggestion count response was not an integer.")
+        return rows
+
+    async def create_series_suggestion(
+        self,
+        user: dict[str, Any] | None,
+        prompt: str,
+        status: str,
+        proposal: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> dict[str, Any]:
+        current_user = _require_user(user)
+        rows = await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/ai_series_suggestions",
+            json={
+                "requested_by_user_id": current_user["id"],
+                "prompt": prompt,
+                "status": status,
+                "proposal": proposal,
+                "sources": _proposal_sources(proposal),
+                "error": error,
+            },
+            extra_headers={"Prefer": "return=representation"},
+        )
+        return rows[0]
+
+    async def get_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> dict[str, Any]:
+        current_user = _require_user(user)
+        rows = await self._request(
+            current_user,
+            "GET",
+            f"/rest/v1/ai_series_suggestions?select=*&id=eq.{suggestion_id}&limit=1",
+        )
+        if not rows:
+            raise ValueError(f"Unknown series suggestion id: {suggestion_id}")
+        return rows[0]
+
+    async def approve_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> None:
+        current_user = _require_user(user)
+        await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/approve_ai_series_suggestion",
+            json={"suggestion_id": suggestion_id},
+        )
+
+    async def reject_series_suggestion(
+        self, user: dict[str, Any] | None, suggestion_id: str
+    ) -> None:
+        current_user = _require_user(user)
+        await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/reject_ai_series_suggestion",
+            json={"suggestion_id": suggestion_id},
         )
 
     async def save_book_state(
@@ -337,3 +475,9 @@ def _merge_rows(
             }
         )
     return {"series": merged_series, "books_by_key": books_by_key, "warnings": []}
+
+
+def _proposal_sources(proposal: dict[str, Any] | None) -> Any | None:
+    if not proposal:
+        return None
+    return proposal.get("source")

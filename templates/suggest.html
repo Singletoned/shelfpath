@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block title %}Suggest series · Shelfpath{% endblock
+title %} {% block content %}
+<h2>Suggest a series</h2>
+
+{% if not current_user %}
+<p>Please sign in to suggest a new series.</p>
+{% elif not allowed %}
+<section class="warning">
+  <p>This account is not allowed to use AI-assisted series suggestions.</p>
+  <p class="muted">Contact the site admin if you want access.</p>
+</section>
+{% else %}
+<p>
+  Describe the book series, publisher collection, reading order, or other
+  ordered list you want Shelfpath to investigate. Include as much helpful
+  context as you can: author, publisher, preferred ordering, useful source
+  links, or anything ambiguous about the list.
+</p>
+<p class="warning">
+  AI-generated proposals can be wrong. Review the suggested books and sources
+  before approving them.
+</p>
+
+{% if rate_limited %}
+<section class="warning">
+  You have used your 5 AI suggestions for today. Try again tomorrow.
+</section>
+{% else %}
+<p class="muted">Suggestions remaining today: {{ remaining }}</p>
+<form method="post" action="{{ url_for('suggest_post') }}">
+  <label style="display: grid; align-items: stretch">
+    Request
+    <textarea
+      name="prompt"
+      rows="8"
+      required
+      placeholder="Example: Rivers of London by Ben Aaronovitch in publication order"
+    ></textarea>
+  </label>
+  <div class="actions">
+    <button type="submit">Investigate series</button>
+  </div>
+</form>
+{% endif %} {% endif %} {% endblock content %}

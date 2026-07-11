@@ -6,9 +6,10 @@ from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Route
 from starlette.templating import Jinja2Templates
 
+from booksequencer.ai_series import OpenAISeriesInvestigator
 from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
-from booksequencer.store import Store, build_store
+from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
 
@@ -60,6 +61,107 @@ async def lists_get(request):
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
     return templates.TemplateResponse(request, "lists.html", _context(request, library=library))
+
+
+async def suggest_get(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    allowed = await request.app.state.store.can_suggest_series(user)
+    remaining = 0
+    if allowed:
+        remaining = max(
+            0, SUGGESTION_DAILY_LIMIT - await request.app.state.store.suggestion_count_today(user)
+        )
+    return templates.TemplateResponse(
+        request,
+        "suggest.html",
+        _context(request, allowed=allowed, remaining=remaining, suggestion=None),
+    )
+
+
+async def suggest_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    if not await request.app.state.store.can_suggest_series(user):
+        return templates.TemplateResponse(
+            request,
+            "suggest.html",
+            _context(request, allowed=False, remaining=0, suggestion=None),
+            status_code=403,
+        )
+    remaining = SUGGESTION_DAILY_LIMIT - await request.app.state.store.suggestion_count_today(user)
+    if remaining <= 0:
+        return templates.TemplateResponse(
+            request,
+            "suggest.html",
+            _context(request, allowed=True, remaining=0, suggestion=None, rate_limited=True),
+            status_code=429,
+        )
+    form = await request.form()
+    prompt = form.get("prompt")
+    if not isinstance(prompt, str) or not prompt.strip():
+        raise ValueError("prompt is required.")
+    try:
+        proposal = await request.app.state.ai_series_investigator.investigate(prompt)
+    except Exception as error:
+        suggestion = await request.app.state.store.create_series_suggestion(
+            user, prompt.strip(), "failed", error=str(error)
+        )
+        return templates.TemplateResponse(
+            request,
+            "suggest_detail.html",
+            _context(request, suggestion=suggestion),
+            status_code=500,
+        )
+    suggestion = await request.app.state.store.create_series_suggestion(
+        user, prompt.strip(), "submitted", proposal=proposal.to_dict()
+    )
+    return RedirectResponse(
+        request.url_for("suggest_detail", suggestion_id=suggestion["id"]),
+        status_code=HTTP_SEE_OTHER,
+    )
+
+
+async def suggest_detail_get(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    suggestion = await request.app.state.store.get_series_suggestion(
+        user, request.path_params["suggestion_id"]
+    )
+    return templates.TemplateResponse(
+        request,
+        "suggest_detail.html",
+        _context(request, suggestion=suggestion),
+    )
+
+
+async def suggest_approve_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    await request.app.state.store.approve_series_suggestion(
+        user, request.path_params["suggestion_id"]
+    )
+    return RedirectResponse(
+        request.url_for("suggest_detail", suggestion_id=request.path_params["suggestion_id"]),
+        status_code=HTTP_SEE_OTHER,
+    )
+
+
+async def suggest_reject_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    await request.app.state.store.reject_series_suggestion(
+        user, request.path_params["suggestion_id"]
+    )
+    return RedirectResponse(
+        request.url_for("suggest_detail", suggestion_id=request.path_params["suggestion_id"]),
+        status_code=HTTP_SEE_OTHER,
+    )
 
 
 async def list_select_post(request):
@@ -191,7 +293,11 @@ async def book_state_post(request):
     return RedirectResponse(_redirect_target(request, book_key), status_code=HTTP_SEE_OTHER)
 
 
-def create_app(settings: Settings | None = None, store: Store | None = None) -> Starlette:
+def create_app(
+    settings: Settings | None = None,
+    store: Store | None = None,
+    ai_series_investigator=None,
+) -> Starlette:
     resolved_settings = settings or load_settings()
     resolved_store = store or build_store(
         resolved_settings.storage,
@@ -210,6 +316,26 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
             Route("/lists", lists_get, methods=("GET",), name="lists"),
             Route("/lists/select", list_select_post, methods=("POST",), name="list_select"),
             Route("/lists/share", list_share_post, methods=("POST",), name="list_share"),
+            Route("/suggest", suggest_get, methods=("GET",), name="suggest"),
+            Route("/suggest", suggest_post, methods=("POST",), name="suggest_post"),
+            Route(
+                "/suggest/{suggestion_id}",
+                suggest_detail_get,
+                methods=("GET",),
+                name="suggest_detail",
+            ),
+            Route(
+                "/suggest/{suggestion_id}/approve",
+                suggest_approve_post,
+                methods=("POST",),
+                name="suggest_approve",
+            ),
+            Route(
+                "/suggest/{suggestion_id}/reject",
+                suggest_reject_post,
+                methods=("POST",),
+                name="suggest_reject",
+            ),
             Route("/series/{series_id}", series_get, methods=("GET",), name="series"),
             Route(
                 "/series/{series_id}/state",
@@ -228,6 +354,10 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
     )
     app.state.settings = resolved_settings
     app.state.store = resolved_store
+    app.state.ai_series_investigator = ai_series_investigator or OpenAISeriesInvestigator(
+        resolved_settings.openai_api_key,
+        resolved_settings.openai_model,
+    )
     app.add_middleware(
         SessionMiddleware,
         secret_key=resolved_settings.session_secret,

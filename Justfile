@@ -19,4 +19,7 @@ db-push:
 catalogue-import:
     PYTHONPATH=. uv run --env-file .env python scripts/import_catalogue_to_supabase.py
 
+ai-allow email:
+    PYTHONPATH=. uv run --env-file .env python scripts/allow_ai_suggestion_user.py {{ email }}
+
 supabase-deploy: db-push catalogue-import
