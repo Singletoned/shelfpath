@@ -149,7 +149,7 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 ## Views
 
 - `/login` signs in with Supabase magic-link auth.
-- `/lists` chooses the active collecting list and lets owners share a list with another signed-in user as an editor or viewer.
+- `/lists` chooses the active collecting list and lets owners share a list by email as an editor or viewer. If the email address does not have a Supabase account yet, Shelfpath records a pending invitation that is accepted automatically when that person signs in.
 - `/` lists series and progress.
 - `/series/{series_id}` shows a series in order with owned/read controls.
 - `/shop` shows books that are not currently owned, grouped by series.
