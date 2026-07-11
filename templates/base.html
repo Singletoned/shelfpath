@@ -127,6 +127,31 @@
         <a href="{{ url_for('index') }}">Series</a>
         <a href="{{ url_for('shop') }}">Shop list</a>
         {% if current_user %}
+        <a href="{{ url_for('lists') }}">Lists</a>
+        {% if library and library.lists|length > 1 %}
+        <form
+          method="post"
+          action="{{ url_for('list_select') }}"
+          class="nav-form"
+        >
+          <input type="hidden" name="next" value="{{ request.url.path }}" />
+          <label>
+            List
+            <select name="list_id" onchange="this.form.submit()">
+              {% for book_list in library.lists %} {% if library.current_list.id
+              == book_list.id %}
+              <option value="{{ book_list.id }}" selected>
+                {{ book_list.name }}
+              </option>
+              {% else %}
+              <option value="{{ book_list.id }}">{{ book_list.name }}</option>
+              {% endif %} {% endfor %}
+            </select>
+          </label>
+        </form>
+        {% elif library and library.current_list %}
+        <span class="muted">List: {{ library.current_list.name }}</span>
+        {% endif %}
         <form method="post" action="{{ url_for('logout') }}" class="nav-form">
           <span class="muted">{{ current_user.email }}</span>
           <button type="submit">Sign out</button>

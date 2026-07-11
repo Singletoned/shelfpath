@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block title %}Lists · Shelfpath{% endblock title %}
+{% block content %}
+<h2>Lists</h2>
+<p class="muted">
+  Choose which collecting list you are updating, or share a list you own.
+</p>
+
+<ul class="cards">
+  {% for book_list in library.lists %}
+  <li class="card">
+    <h3>{{ book_list.name }}</h3>
+    <p class="muted">Role: {{ book_list.role }}</p>
+    {% if library.current_list.id == book_list.id %}
+    <p><strong>Currently selected</strong></p>
+    {% else %}
+    <form method="post" action="{{ url_for('list_select') }}">
+      <input type="hidden" name="list_id" value="{{ book_list.id }}" />
+      <input type="hidden" name="next" value="{{ url_for('index') }}" />
+      <button type="submit">Use this list</button>
+    </form>
+    {% endif %} {% if book_list.is_owner %}
+    <h4>Share this list</h4>
+    <form
+      method="post"
+      action="{{ url_for('list_share') }}"
+      class="checkbox-row"
+    >
+      <input type="hidden" name="list_id" value="{{ book_list.id }}" />
+      <label>
+        Email
+        <input name="email" type="email" required />
+      </label>
+      <label>
+        Role
+        <select name="role">
+          <option value="editor">Can update</option>
+          <option value="viewer">Can view</option>
+        </select>
+      </label>
+      <button type="submit">Share</button>
+    </form>
+    <p class="muted">
+      The other person must have signed in to Shelfpath at least once before you
+      share with them.
+    </p>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endblock content %}

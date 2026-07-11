@@ -12,6 +12,10 @@ from booksequencer.store import Store, build_store
 
 HTTP_SEE_OTHER = 303
 
+STORAGE_SUPABASE = "supabase"
+
+ACTIVE_LIST_SESSION_KEY = "active_list_id"
+
 templates = Jinja2Templates(directory=DEFAULT_TEMPLATE_DIR)
 
 
@@ -19,7 +23,8 @@ async def index_get(request):
     user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
-    library = await request.app.state.store.load_library(user)
+    library = await _library_for_request(request, user)
+    _remember_active_list(request, library)
     return templates.TemplateResponse(request, "index.html", _context(request, library=library))
 
 
@@ -29,7 +34,8 @@ async def series_get(request):
         return redirect_to_login(request)
     series_id = request.path_params["series_id"]
     sort_order = request.query_params.get("sort", "series")
-    library = await request.app.state.store.load_library(user)
+    library = await _library_for_request(request, user)
+    _remember_active_list(request, library)
     series = _sorted_series(_find_series(library, series_id), sort_order)
     return templates.TemplateResponse(
         request,
@@ -42,8 +48,52 @@ async def shop_get(request):
     user = await _user_for_request(request)
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
-    library = await request.app.state.store.load_library(user)
+    library = await _library_for_request(request, user)
+    _remember_active_list(request, library)
     return templates.TemplateResponse(request, "shop.html", _context(request, library=library))
+
+
+async def lists_get(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    library = await _library_for_request(request, user)
+    _remember_active_list(request, library)
+    return templates.TemplateResponse(request, "lists.html", _context(request, library=library))
+
+
+async def list_select_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    form = await request.form()
+    list_id = form.get("list_id")
+    if not isinstance(list_id, str) or not list_id:
+        raise ValueError("list_id is required.")
+    accessible_lists = await request.app.state.store.list_lists(user)
+    if list_id not in {book_list["id"] for book_list in accessible_lists}:
+        raise ValueError(f"Unknown or inaccessible list id: {list_id}")
+    request.session[ACTIVE_LIST_SESSION_KEY] = list_id
+    return RedirectResponse(_safe_next(form.get("next")), status_code=HTTP_SEE_OTHER)
+
+
+async def list_share_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    form = await request.form()
+    list_id = form.get("list_id")
+    email = form.get("email")
+    role = form.get("role", "editor")
+    if not isinstance(list_id, str) or not list_id:
+        raise ValueError("list_id is required.")
+    if not isinstance(email, str):
+        raise ValueError("email is required.")
+    if not isinstance(role, str):
+        raise ValueError("role is required.")
+    await request.app.state.store.share_list(user, list_id, email, role)
+    request.session[ACTIVE_LIST_SESSION_KEY] = list_id
+    return RedirectResponse("/lists", status_code=HTTP_SEE_OTHER)
 
 
 async def login_get(request):
@@ -116,6 +166,7 @@ async def series_state_post(request):
             book_key: {"owned": book_key in owned_keys, "read": book_key in read_keys}
             for book_key in book_keys
         },
+        _active_list_id(request),
     )
     redirect_url = request.url_for("series", series_id=series_id)
     sort_order = request.query_params.get("sort")
@@ -135,6 +186,7 @@ async def book_state_post(request):
         book_key,
         owned="owned" in form,
         read="read" in form,
+        list_id=_active_list_id(request),
     )
     return RedirectResponse(_redirect_target(request, book_key), status_code=HTTP_SEE_OTHER)
 
@@ -155,6 +207,9 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
             Route("/auth/callback", auth_callback_get, methods=("GET",), name="auth_callback"),
             Route("/auth/session", auth_session_post, methods=("POST",), name="auth_session"),
             Route("/logout", logout_post, methods=("POST",), name="logout"),
+            Route("/lists", lists_get, methods=("GET",), name="lists"),
+            Route("/lists/select", list_select_post, methods=("POST",), name="list_select"),
+            Route("/lists/share", list_share_post, methods=("POST",), name="list_share"),
             Route("/series/{series_id}", series_get, methods=("GET",), name="series"),
             Route(
                 "/series/{series_id}/state",
@@ -184,7 +239,7 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
 
 async def _user_for_request(request):
     settings = request.app.state.settings
-    if settings.storage != "supabase":
+    if settings.storage != STORAGE_SUPABASE:
         return current_user(request)
     return await fresh_user(
         request,
@@ -193,12 +248,35 @@ async def _user_for_request(request):
     )
 
 
+async def _library_for_request(request, user):
+    return await request.app.state.store.load_library(user, _active_list_id(request))
+
+
+def _active_list_id(request) -> str | None:
+    value = request.session.get(ACTIVE_LIST_SESSION_KEY)
+    if isinstance(value, str):
+        return value
+    return None
+
+
+def _remember_active_list(request, library) -> None:
+    current_list = library.get("current_list")
+    if isinstance(current_list, dict) and isinstance(current_list.get("id"), str):
+        request.session[ACTIVE_LIST_SESSION_KEY] = current_list["id"]
+
+
+def _safe_next(value) -> str:
+    if isinstance(value, str) and value.startswith("/") and not value.startswith("//"):
+        return value
+    return "/"
+
+
 def _context(request, **values):
     return {"request": request, "current_user": current_user(request), **values}
 
 
 def _requires_auth(app: Starlette, user) -> bool:
-    return app.state.settings.storage == "supabase" and user is None
+    return app.state.settings.storage == STORAGE_SUPABASE and user is None
 
 
 def _find_series(library, series_id):

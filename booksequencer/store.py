@@ -7,16 +7,38 @@ import httpx
 
 from booksequencer.library import load_library, save_book_state, save_book_states
 
+DEFAULT_LIST_NAME = "My books"
+
 
 class Store(Protocol):
-    async def load_library(self, user: dict[str, Any] | None) -> dict[str, Any]: ...
+    async def load_library(
+        self, user: dict[str, Any] | None, list_id: str | None = None
+    ) -> dict[str, Any]: ...
+
+    async def list_lists(self, user: dict[str, Any] | None) -> list[dict[str, Any]]: ...
+
+    async def share_list(
+        self,
+        user: dict[str, Any] | None,
+        list_id: str,
+        email: str,
+        role: str,
+    ) -> None: ...
 
     async def save_book_state(
-        self, user: dict[str, Any] | None, book_key: str, owned: bool, read: bool
+        self,
+        user: dict[str, Any] | None,
+        book_key: str,
+        owned: bool,
+        read: bool,
+        list_id: str | None = None,
     ) -> None: ...
 
     async def save_book_states(
-        self, user: dict[str, Any] | None, book_states: dict[str, dict[str, bool]]
+        self,
+        user: dict[str, Any] | None,
+        book_states: dict[str, dict[str, bool]],
+        list_id: str | None = None,
     ) -> None: ...
 
 
@@ -24,16 +46,41 @@ class FileStore:
     def __init__(self, data_dir: Path) -> None:
         self.data_dir = data_dir
 
-    async def load_library(self, user: dict[str, Any] | None) -> dict[str, Any]:
-        return load_library(self.data_dir)
+    async def load_library(
+        self, user: dict[str, Any] | None, list_id: str | None = None
+    ) -> dict[str, Any]:
+        library = load_library(self.data_dir)
+        library["lists"] = [_file_list()]
+        library["current_list"] = _file_list()
+        return library
+
+    async def list_lists(self, user: dict[str, Any] | None) -> list[dict[str, Any]]:
+        return [_file_list()]
+
+    async def share_list(
+        self,
+        user: dict[str, Any] | None,
+        list_id: str,
+        email: str,
+        role: str,
+    ) -> None:
+        raise ValueError("Shared lists require Supabase storage.")
 
     async def save_book_state(
-        self, user: dict[str, Any] | None, book_key: str, owned: bool, read: bool
+        self,
+        user: dict[str, Any] | None,
+        book_key: str,
+        owned: bool,
+        read: bool,
+        list_id: str | None = None,
     ) -> None:
         save_book_state(self.data_dir, book_key, owned, read)
 
     async def save_book_states(
-        self, user: dict[str, Any] | None, book_states: dict[str, dict[str, bool]]
+        self,
+        user: dict[str, Any] | None,
+        book_states: dict[str, dict[str, bool]],
+        list_id: str | None = None,
     ) -> None:
         save_book_states(self.data_dir, book_states)
 
@@ -43,9 +90,12 @@ class SupabaseStore:
         self.supabase_url = supabase_url.rstrip("/")
         self.publishable_key = publishable_key
 
-    async def load_library(self, user: dict[str, Any] | None) -> dict[str, Any]:
+    async def load_library(
+        self, user: dict[str, Any] | None, list_id: str | None = None
+    ) -> dict[str, Any]:
         current_user = _require_user(user)
-        list_id = await self._ensure_personal_list(current_user)
+        lists = await self.list_lists(current_user)
+        current_list = _select_list(lists, list_id)
         series_rows = await self._request(
             current_user, "GET", "/rest/v1/series?select=*&order=title.asc"
         )
@@ -57,20 +107,72 @@ class SupabaseStore:
         state_rows = await self._request(
             current_user,
             "GET",
-            f"/rest/v1/book_states?select=book_id,owned,read&list_id=eq.{list_id}",
+            f"/rest/v1/book_states?select=book_id,owned,read&list_id=eq.{current_list['id']}",
         )
-        return _merge_rows(series_rows, book_rows, state_rows)
+        library = _merge_rows(series_rows, book_rows, state_rows)
+        library["lists"] = lists
+        library["current_list"] = current_list
+        return library
 
-    async def save_book_state(
-        self, user: dict[str, Any] | None, book_key: str, owned: bool, read: bool
-    ) -> None:
-        await self.save_book_states(user, {book_key: {"owned": owned, "read": read}})
+    async def list_lists(self, user: dict[str, Any] | None) -> list[dict[str, Any]]:
+        current_user = _require_user(user)
+        memberships = await self._request(
+            current_user,
+            "GET",
+            "/rest/v1/list_members?select=list_id,role,lists(id,name,owner_user_id)&order=created_at.asc",
+        )
+        if not memberships:
+            await self._create_personal_list(current_user)
+            memberships = await self._request(
+                current_user,
+                "GET",
+                "/rest/v1/list_members?select=list_id,role,lists(id,name,owner_user_id)&order=created_at.asc",
+            )
+        return [_membership_list(membership, current_user["id"]) for membership in memberships]
 
-    async def save_book_states(
-        self, user: dict[str, Any] | None, book_states: dict[str, dict[str, bool]]
+    async def share_list(
+        self,
+        user: dict[str, Any] | None,
+        list_id: str,
+        email: str,
+        role: str,
     ) -> None:
         current_user = _require_user(user)
-        list_id = await self._ensure_personal_list(current_user)
+        normalized_email = email.strip().lower()
+        if not normalized_email:
+            raise ValueError("Email address is required.")
+        if role not in {"editor", "viewer"}:
+            raise ValueError("Shared list role must be editor or viewer.")
+        await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/add_list_member_by_email",
+            json={
+                "target_list_id": list_id,
+                "member_email": normalized_email,
+                "member_role": role,
+            },
+        )
+
+    async def save_book_state(
+        self,
+        user: dict[str, Any] | None,
+        book_key: str,
+        owned: bool,
+        read: bool,
+        list_id: str | None = None,
+    ) -> None:
+        await self.save_book_states(user, {book_key: {"owned": owned, "read": read}}, list_id)
+
+    async def save_book_states(
+        self,
+        user: dict[str, Any] | None,
+        book_states: dict[str, dict[str, bool]],
+        list_id: str | None = None,
+    ) -> None:
+        current_user = _require_user(user)
+        lists = await self.list_lists(current_user)
+        current_list = _select_list(lists, list_id)
         keys = sorted(book_states)
         if not keys:
             return
@@ -86,7 +188,7 @@ class SupabaseStore:
             raise ValueError(f"Unknown book keys: {', '.join(sorted(unknown_keys))}")
         rows = [
             {
-                "list_id": list_id,
+                "list_id": current_list["id"],
                 "book_id": ids_by_key[book_key],
                 "owned": book_state["owned"],
                 "read": book_state["read"],
@@ -101,20 +203,12 @@ class SupabaseStore:
             extra_headers={"Prefer": "resolution=merge-duplicates"},
         )
 
-    async def _ensure_personal_list(self, user: dict[str, Any]) -> str:
-        memberships = await self._request(
-            user,
-            "GET",
-            "/rest/v1/list_members?select=list_id,role,lists(name)&order=created_at.asc&limit=1",
-        )
-        if memberships:
-            return memberships[0]["list_id"]
-
+    async def _create_personal_list(self, user: dict[str, Any]) -> str:
         inserted_lists = await self._request(
             user,
             "POST",
             "/rest/v1/lists",
-            json={"name": "My books", "owner_user_id": user["id"]},
+            json={"name": DEFAULT_LIST_NAME, "owner_user_id": user["id"]},
             extra_headers={"Prefer": "return=representation"},
         )
         list_id = inserted_lists[0]["id"]
@@ -166,10 +260,38 @@ def build_store(
     raise ValueError(f"Unknown storage backend: {storage}")
 
 
+def _file_list() -> dict[str, Any]:
+    return {"id": "file", "name": DEFAULT_LIST_NAME, "role": "owner", "is_owner": True}
+
+
 def _require_user(user: dict[str, Any] | None) -> dict[str, Any]:
     if user is None:
         raise ValueError("Supabase storage requires an authenticated user.")
     return user
+
+
+def _select_list(lists: list[dict[str, Any]], list_id: str | None) -> dict[str, Any]:
+    if not lists:
+        raise ValueError("User has no lists.")
+    if list_id:
+        for book_list in lists:
+            if book_list["id"] == list_id:
+                return book_list
+        raise ValueError(f"Unknown or inaccessible list id: {list_id}")
+    return lists[0]
+
+
+def _membership_list(membership: dict[str, Any], current_user_id: str) -> dict[str, Any]:
+    book_list = membership.get("lists")
+    if not isinstance(book_list, dict):
+        raise ValueError("List membership response did not include list details.")
+    owner_user_id = book_list.get("owner_user_id")
+    return {
+        "id": membership["list_id"],
+        "name": book_list["name"],
+        "role": membership["role"],
+        "is_owner": owner_user_id == current_user_id,
+    }
 
 
 def _merge_rows(

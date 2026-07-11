@@ -149,6 +149,7 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 ## Views
 
 - `/login` signs in with Supabase magic-link auth.
+- `/lists` chooses the active collecting list and lets owners share a list with another signed-in user as an editor or viewer.
 - `/` lists series and progress.
 - `/series/{series_id}` shows a series in order with owned/read controls.
 - `/shop` shows books that are not currently owned, grouped by series.
@@ -162,4 +163,5 @@ After changing the app, check:
 3. Owned/read checkboxes save and persist after refresh.
 4. `/shop` omits owned books.
 5. Read-but-not-owned books still appear in `/shop`.
-6. Broken YAML produces a clear traceback in development.
+6. `/lists` shows the current list and allows owners to share Supabase-backed lists.
+7. Broken YAML produces a clear traceback in development.

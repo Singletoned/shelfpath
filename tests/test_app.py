@@ -81,6 +81,18 @@ class AppTests(unittest.TestCase):
                 "http://testserver/series/example-series?sort=title",
             )
 
+    def test_lists_page_loads_for_file_storage(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            response = client.get("/lists")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("My books", response.text)
+            self.assertIn("Currently selected", response.text)
+
     def test_series_bulk_save_persists_multiple_changed_books(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -160,13 +172,19 @@ class AppTests(unittest.TestCase):
 
 
 class FailingStore:
-    async def load_library(self, user):
+    async def load_library(self, user, list_id=None):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
-    async def save_book_state(self, user, book_key, owned, read):
+    async def list_lists(self, user):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
-    async def save_book_states(self, user, book_states):
+    async def share_list(self, user, list_id, email, role):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def save_book_state(self, user, book_key, owned, read, list_id=None):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def save_book_states(self, user, book_states, list_id=None):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
 
