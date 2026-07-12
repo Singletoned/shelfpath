@@ -1,23 +1,47 @@
-{% extends "base.html" %} {% block title %}Series · Shelfpath{% endblock title
-%} {% block content %}
-<h2>Series</h2>
+{% extends "base.html" %} {% block title %}Shelf · Shelfpath{% endblock title %}
+{% block content %}
+<p class="overline">My series</p>
 <ul class="cards">
   {% for series in library.series %}
-  <li class="card">
-    <h3>
-      <a href="{{ url_for('series', series_id=series.id) }}"
-        >{{ series.title }}</a
-      >
-    </h3>
-    {% if series.author %}
-    <p class="muted">{{ series.author }}</p>
-    {% endif %}
-    <p class="progress">
-      {{ series.owned_count }} / {{ series.book_count }} owned · {{
-      series.read_count }} / {{ series.book_count }} read · {{
-      series.missing_count }} missing
-    </p>
+  <li class="card series-card">
+    <div class="series-card-heading">
+      <div>
+        <h3>
+          <a href="{{ url_for('series', series_id=series.id) }}"
+            >{{ series.title }}</a
+          >
+        </h3>
+        {% if series.author %}
+        <p class="muted">{{ series.author }}</p>
+        {% endif %}
+      </div>
+      <div class="wanted-count">{{ series.wanted_count }} wanted</div>
+    </div>
+    {% set read_percent = (series.read_count / series.book_count * 100) if
+    series.book_count else 0 %} {% set owned_unread = series.owned_count -
+    series.read_count %} {% if owned_unread < 0 %}{% set owned_unread = 0 %}{%
+    endif %} {% set owned_percent = (owned_unread / series.book_count * 100) if
+    series.book_count else 0 %}
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-read" style="width: {{ read_percent }}%"></div>
+      <div class="progress-owned" style="width: {{ owned_percent }}%"></div>
+    </div>
+    <div class="legend-row">
+      <span>{{ series.read_count }} read</span>
+      <span>{{ series.owned_count }} owned</span>
+      <span>{{ series.book_count }} total</span>
+    </div>
   </li>
   {% endfor %}
+  <li class="card" style="border-style: dashed; text-align: center">
+    <a
+      href="{{ url_for('suggest') }}"
+      style="font-weight: 800; text-decoration: none"
+      >+ Add a series</a
+    >
+  </li>
 </ul>
+<p class="attribution">
+  Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
+</p>
 {% endblock content %}

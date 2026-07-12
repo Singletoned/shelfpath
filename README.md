@@ -76,7 +76,13 @@ Import catalogue data from the separate `data/` repository with:
 just catalogue-import
 ```
 
-`just catalogue-import` requires `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
+Fetch Open Library cover IDs for books that do not have one yet with:
+
+```sh
+just covers-fetch
+```
+
+`just catalogue-import` and `just covers-fetch` require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
 
 To apply both database migrations and catalogue import locally:
 
@@ -131,14 +137,16 @@ books:
   example-series/first-book:
     owned: true
     read: true
+    wanted: true
   example-series/second-book:
     owned: false
     read: true
+    wanted: true
 ```
 
 `source` records provenance for future review. It is optional but recommended for real series data.
 
-`read: true` and `owned: false` is valid: you may have read a book and given it away.
+`read: true` and `owned: false` is valid: you may have read a book and given it away. `wanted` is also independent; missing/hunting books are derived from `wanted: true` and `owned: false`.
 
 ## Deployment
 
@@ -161,9 +169,10 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 - `/login` signs in with Supabase magic-link auth.
 - `/lists` chooses the active collecting list and lets owners share a list by email as an editor or viewer. If the email address does not have a Supabase account yet, Shelfpath records a pending invitation that is accepted automatically when that person signs in.
 - `/suggest` lets allow-listed logged-in users ask OpenAI to investigate a new ordered series, review the proposed books and provenance, then approve or reject the proposal.
+- Book rows show Open Library covers when `books.openlibrary_cover_id` is populated and a striped placeholder otherwise.
 - `/` lists series and progress.
-- `/series/{series_id}` shows a series in order with owned/read controls.
-- `/shop` shows books that are not currently owned, grouped by series.
+- `/series/{series_id}` shows a series in order with wanted/owned/read controls.
+- `/shop` shows wanted books that are not currently owned, grouped by series.
 
 ## Manual check
 
@@ -177,4 +186,5 @@ After changing the app, check:
 6. `/lists` shows the current list and allows owners to share Supabase-backed lists.
 7. `/suggest` shows a friendly access message for users who are not allow-listed.
 8. Allow-listed users can generate, reject, and approve AI-assisted series proposals.
-9. Broken YAML produces a clear traceback in development.
+9. Series and shop rows render Open Library covers when available and placeholders otherwise.
+10. Broken YAML produces a clear traceback in development.

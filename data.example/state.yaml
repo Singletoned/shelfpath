@@ -2,6 +2,8 @@ books:
   example-series/first-book:
     owned: true
     read: true
+    wanted: true
   example-series/second-book:
     owned: false
     read: true
+    wanted: true

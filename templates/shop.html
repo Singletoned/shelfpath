@@ -1,53 +1,83 @@
-{% extends "base.html" %} {% block title %}Shop list · Shelfpath{% endblock
+{% extends "base.html" %} {% block title %}Shop check · Shelfpath{% endblock
 title %} {% block content %}
-<h2>Shop list</h2>
-<p class="muted">Books not currently owned, grouped by series.</p>
+<section class="shop-page">
+  <div
+    style="display: flex; align-items: baseline; justify-content: space-between"
+  >
+    <h2>Shop check</h2>
+    <strong class="faint">Shelfpath</strong>
+  </div>
+  <input class="shop-search" type="search" placeholder="Type a title…" />
+  <p class="faint">
+    Wanted books across all your series. Fuzzy title search is coming next.
+  </p>
 
-{% for series in library.series %} {% set missing_books = series.books |
-rejectattr('owned') | list %} {% if missing_books %}
-<section>
-  <h3>
-    <a href="{{ url_for('series', series_id=series.id) }}"
-      >{{ series.title }}</a
-    >
-  </h3>
-  {% if series.author %}
-  <p class="muted">{{ series.author }}</p>
-  {% endif %}
-  <ol class="book-list">
-    {% for book in missing_books %}
-    <li class="book">
-      <div>
-        <div class="book-title">{{ book.position }}. {{ book.title }}</div>
-        {% if book.author and book.author != series.author %}
-        <div class="muted">{{ book.author }}</div>
-        {% endif %} {% if book.read %}
-        <div class="muted">Already read, not currently owned</div>
-        {% endif %}
-      </div>
-      <form
-        class="checkbox-row"
-        method="post"
-        action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
+  {% for series in library.series %} {% set wanted_books = series.books |
+  selectattr('wanted') | rejectattr('owned') | list %} {% if wanted_books %}
+  <section class="shop-section">
+    <h3>
+      <a href="{{ url_for('series', series_id=series.id) }}"
+        >{{ series.title }}</a
       >
-        <label><input type="checkbox" name="owned" /> Owned</label>
-        <label
-          ><input
-            type="checkbox"
-            name="read"
-            {%
-            if
-            book.read
-            %}checked{%
-            endif
-            %}
-          />
-          Read</label
+    </h3>
+    {% if series.author %}
+    <p class="faint">{{ series.author }}</p>
+    {% endif %} {% for book in wanted_books %}
+    <div class="shop-book">
+      {% if book.cover_url %}
+      <img
+        class="cover"
+        src="{{ book.cover_url }}"
+        alt="Cover of {{ book.title }}"
+        loading="lazy"
+      />
+      {% else %}
+      <div class="cover-placeholder" aria-label="No cover available">cover</div>
+      {% endif %}
+      <div>
+        <div class="book-title" style="color: var(--cream)">
+          #{{ book.position }} {{ book.title }}
+        </div>
+        <div class="book-meta">
+          {{ series.title }}{% if book.author and book.author != series.author
+          %} · {{ book.author }}{% endif %}
+        </div>
+        <form
+          class="chip-row"
+          method="post"
+          action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
         >
-        <button type="submit">Save</button>
-      </form>
-    </li>
+          <label>
+            <input class="chip-input" type="checkbox" name="wanted" checked />
+            <span class="chip want">WANT</span>
+          </label>
+          <label>
+            <input class="chip-input" type="checkbox" name="owned" />
+            <span class="chip own">OWN</span>
+          </label>
+          <label>
+            <input
+              class="chip-input"
+              type="checkbox"
+              name="read"
+              {%
+              if
+              book.read
+              %}checked{%
+              endif
+              %}
+            />
+            <span class="chip read">READ</span>
+          </label>
+          <button type="submit">Save</button>
+        </form>
+      </div>
+    </div>
     {% endfor %}
-  </ol>
+  </section>
+  {% endif %} {% endfor %}
+  <p class="attribution">
+    Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
+  </p>
 </section>
-{% endif %} {% endfor %} {% endblock content %}
+{% endblock content %}

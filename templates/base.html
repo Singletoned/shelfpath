@@ -4,45 +4,154 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Shelfpath{% endblock title %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        color-scheme: light dark;
+        --orange: #e85d1f;
+        --ink: #17130c;
+        --blue: #3d6b9e;
+        --cream: #fff8ea;
+        --paper: #ffffff;
+        --line: #e5dcc8;
+        --strong-line: #c9bfa8;
+        --muted: #6b6152;
+        --faint: #9a8f7c;
+        --ghost: #b4a98f;
+        --ghost-line: #dfd5be;
+        --hunting: #fdefe5;
+        --hunting-line: #f5dcc8;
+        --orange-soft: #ffd9c2;
+        --dark-card: #221d13;
+        --dark-line: #3a3325;
         font-family:
+          Archivo,
           system-ui,
           -apple-system,
           BlinkMacSystemFont,
           "Segoe UI",
           sans-serif;
       }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        background: Canvas;
-        color: CanvasText;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: Archivo, system-ui, sans-serif;
       }
-      header,
+
+      a {
+        color: inherit;
+      }
+
+      .site-header {
+        background: var(--orange);
+        color: var(--cream);
+      }
+
+      .site-header-inner,
       main {
         margin: 0 auto;
-        max-width: 58rem;
-        padding: 1rem;
+        max-width: 72rem;
+        padding: 1rem 1.25rem;
       }
-      header {
-        border-bottom: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+
+      .site-header-inner {
+        display: grid;
+        gap: 0.85rem;
       }
-      nav {
+
+      .top-nav {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem;
+        gap: 1rem;
       }
+
+      .wordmark {
+        color: var(--cream);
+        font-size: 1.55rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin-right: 0.7rem;
+        text-decoration: none;
+      }
+
+      nav a {
+        color: var(--orange-soft);
+        font-size: 0.92rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      nav a.active,
+      nav a:hover {
+        color: var(--cream);
+      }
+
+      .header-search {
+        align-items: center;
+        background: var(--cream);
+        border-radius: 0.75rem;
+        color: var(--faint);
+        display: flex;
+        flex: 1 1 14rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        gap: 0.55rem;
+        min-height: 2.75rem;
+        padding: 0.65rem 0.9rem;
+        text-decoration: none;
+      }
+
       .nav-form {
         align-items: center;
         display: inline-flex;
-        gap: 0.75rem;
+        gap: 0.55rem;
         margin: 0;
       }
-      a {
-        color: LinkText;
+
+      .nav-form select {
+        border: 0;
+        border-radius: 0.55rem;
+        font: inherit;
+        min-height: 2.2rem;
+        padding: 0.25rem 0.5rem;
       }
+
+      main {
+        padding-bottom: 5.5rem;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h2 {
+        font-size: 1.55rem;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+      }
+
+      .overline {
+        color: var(--faint);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
       .cards,
       .book-list {
         display: grid;
@@ -50,117 +159,386 @@
         list-style: none;
         padding: 0;
       }
-      .card,
-      .book {
-        border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
-        border-radius: 0.8rem;
+
+      .card {
+        background: var(--paper);
+        border: 1.5px solid var(--line);
+        border-radius: 0.9rem;
         padding: 1rem;
       }
-      .book {
-        display: grid;
-        gap: 0.75rem;
+
+      .card h3 {
+        font-size: 1.06rem;
+        font-weight: 800;
+        margin: 0;
       }
-      .book.owned {
-        opacity: 0.68;
+
+      .card h3 a {
+        text-decoration: none;
       }
-      .book-title {
-        font-weight: 700;
-      }
+
       .muted {
-        color: color-mix(in srgb, CanvasText 62%, transparent);
+        color: var(--muted);
       }
-      .progress {
-        margin-top: 0.4rem;
+
+      .faint {
+        color: var(--faint);
       }
+
       .warning {
-        background: color-mix(in srgb, Mark 35%, Canvas);
-        border-radius: 0.6rem;
-        padding: 0.75rem;
+        background: var(--hunting);
+        border: 1px solid var(--hunting-line);
+        border-radius: 0.75rem;
+        padding: 0.85rem;
       }
-      form.checkbox-row {
+
+      .series-card-heading {
+        align-items: start;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+      }
+
+      .wanted-count {
+        color: var(--orange);
+        font-size: 0.82rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .progress-track {
+        background: #ede6d6;
+        border-radius: 999px;
+        display: flex;
+        height: 0.5rem;
+        margin: 0.85rem 0 0.55rem;
+        overflow: hidden;
+      }
+
+      .progress-read {
+        background: var(--blue);
+      }
+
+      .progress-owned {
+        background: var(--ink);
+      }
+
+      .legend-row {
+        color: var(--muted);
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem;
-        align-items: center;
+        font-size: 0.78rem;
+        font-weight: 600;
+        gap: 0.8rem;
       }
-      label {
-        align-items: center;
-        display: inline-flex;
-        gap: 0.35rem;
-        min-height: 2.6rem;
+
+      .screen-header {
+        background: var(--ink);
+        color: var(--cream);
+        margin: -1rem -1.25rem 1rem;
+        padding: 1rem 1.25rem;
       }
-      input[type="checkbox"] {
-        min-height: 1.4rem;
-        min-width: 1.4rem;
+
+      .screen-header a {
+        color: var(--cream);
+        text-decoration: none;
       }
+
+      .screen-header h2 {
+        margin: 0;
+      }
+
+      .pill-row,
       .actions {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-        margin: 1rem 0;
+        margin: 0.8rem 0;
       }
+
+      .pill,
       .button,
       button {
-        border: 1px solid ButtonBorder;
-        border-radius: 0.5rem;
-        cursor: pointer;
+        border-radius: 999px;
         font: inherit;
-        min-height: 2.6rem;
+        font-size: 0.78rem;
+        font-weight: 800;
+        min-height: 2.65rem;
         padding: 0.45rem 0.8rem;
       }
-      .button {
+
+      .pill {
         align-items: center;
-        color: CanvasText;
         display: inline-flex;
+      }
+
+      .pill.all {
+        background: var(--cream);
+        color: var(--ink);
+      }
+
+      .pill.want {
+        background: var(--orange);
+        color: var(--cream);
+      }
+
+      .pill.own {
+        background: rgba(255, 248, 234, 0.18);
+        color: var(--cream);
+      }
+
+      .button,
+      button {
+        background: var(--ink);
+        border: 1.5px solid var(--ink);
+        color: var(--cream);
+        cursor: pointer;
         text-decoration: none;
       }
+
+      .button.secondary,
       .button.active {
-        background: Highlight;
-        color: HighlightText;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      .book-list {
+        gap: 0;
+      }
+
+      .book-row {
+        align-items: center;
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        gap: 0.65rem;
+        grid-template-columns: 1.4rem 2.125rem minmax(0, 1fr);
+        padding: 0.6rem 1rem 0.6rem 1.25rem;
+      }
+
+      .book-row.hunting {
+        background: var(--hunting);
+        border-color: var(--hunting-line);
+      }
+
+      .book-number {
+        color: var(--faint);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: right;
+      }
+
+      .cover,
+      .cover-placeholder {
+        aspect-ratio: 2 / 3;
+        border: 1px solid var(--strong-line);
+        border-radius: 0.25rem;
+        display: block;
+        height: auto;
+        object-fit: cover;
+        width: 2.125rem;
+      }
+
+      .cover-placeholder {
+        align-items: center;
+        background: repeating-linear-gradient(
+          45deg,
+          #e5dcc8,
+          #e5dcc8 5px,
+          #f8efd9 5px,
+          #f8efd9 10px
+        );
+        color: var(--faint);
+        display: flex;
+        font-family: ui-monospace, monospace;
+        font-size: 0.45rem;
+        justify-content: center;
+      }
+
+      .book-main {
+        min-width: 0;
+      }
+
+      .book-title {
+        color: var(--ink);
+        display: -webkit-box;
+        font-size: 0.94rem;
+        font-weight: 700;
+        line-height: 1.2;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .book-meta {
+        color: var(--faint);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.15rem;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.45rem;
+      }
+
+      .chip-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .chip {
+        border: 1.5px solid var(--ghost-line);
+        border-radius: 999px;
+        color: var(--ghost);
+        cursor: pointer;
+        display: inline-flex;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        min-height: 2rem;
+        padding: 0.38rem 0.48rem;
+      }
+
+      .chip-input:checked + .chip.want {
+        background: var(--orange);
+        border-color: var(--orange);
+        color: var(--cream);
+      }
+
+      .chip-input:checked + .chip.own {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--cream);
+      }
+
+      .chip-input:checked + .chip.read {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: var(--cream);
+      }
+
+      .shop-page {
+        background: var(--ink);
+        color: var(--cream);
+        margin: -1rem -1.25rem;
+        min-height: calc(100vh - 5.5rem);
+        padding: 1rem 1.25rem 2rem;
+      }
+
+      .shop-page .muted,
+      .shop-page .faint {
+        color: var(--faint);
+      }
+
+      .shop-search {
+        background: var(--cream);
+        border: 0;
+        border-radius: 0.75rem;
+        color: var(--ink);
+        font: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        min-height: 3rem;
+        padding: 0.8rem 1rem;
+        width: 100%;
+      }
+
+      .shop-section {
+        margin-top: 1rem;
+      }
+
+      .shop-book {
+        background: var(--dark-card);
+        border: 1.5px solid var(--dark-line);
+        border-radius: 1rem;
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+        margin-bottom: 0.6rem;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .shop-book .cover,
+      .shop-book .cover-placeholder {
+        border-color: var(--dark-line);
+        width: 2.5rem;
+      }
+
+      .attribution {
+        color: var(--faint);
+        font-size: 0.78rem;
+        margin-top: 1.5rem;
+      }
+
+      @media (min-width: 760px) {
+        .cards {
+          grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        }
+
+        .series-detail-layout {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.7rem 1.1rem;
+        }
+
+        .series-detail-layout .book-row {
+          border: 1.5px solid var(--line);
+          border-radius: 0.75rem;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Shelfpath</h1>
-      <nav>
-        <a href="{{ url_for('index') }}">Series</a>
-        <a href="{{ url_for('shop') }}">Shop list</a>
-        {% if current_user %}
-        <a href="{{ url_for('lists') }}">Lists</a>
-        <a href="{{ url_for('suggest') }}">Suggest series</a>
-        {% if library and library.lists|length > 1 %}
-        <form
-          method="post"
-          action="{{ url_for('list_select') }}"
-          class="nav-form"
-        >
-          <input type="hidden" name="next" value="{{ request.url.path }}" />
-          <label>
-            List
-            <select name="list_id" onchange="this.form.submit()">
-              {% for book_list in library.lists %} {% if library.current_list.id
-              == book_list.id %}
-              <option value="{{ book_list.id }}" selected>
-                {{ book_list.name }}
-              </option>
-              {% else %}
-              <option value="{{ book_list.id }}">{{ book_list.name }}</option>
-              {% endif %} {% endfor %}
-            </select>
-          </label>
-        </form>
-        {% elif library and library.current_list %}
-        <span class="muted">List: {{ library.current_list.name }}</span>
-        {% endif %}
-        <form method="post" action="{{ url_for('logout') }}" class="nav-form">
-          <span class="muted">{{ current_user.email }}</span>
-          <button type="submit">Sign out</button>
-        </form>
-        {% else %}
-        <a href="{{ url_for('login') }}">Sign in</a>
-        {% endif %}
-      </nav>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <nav class="top-nav">
+          <a class="wordmark" href="{{ url_for('index') }}">Shelfpath</a>
+          <a href="{{ url_for('index') }}">Shelf</a>
+          <a href="{{ url_for('shop') }}">Shop check</a>
+          {% if current_user %}
+          <a href="{{ url_for('lists') }}">Lists</a>
+          <a href="{{ url_for('suggest') }}">Suggest series</a>
+          {% endif %}
+          <a class="header-search" href="{{ url_for('shop') }}"
+            >⌕ Check a book…</a
+          >
+          {% if current_user %} {% if library and library.lists|length > 1 %}
+          <form
+            method="post"
+            action="{{ url_for('list_select') }}"
+            class="nav-form"
+          >
+            <input type="hidden" name="next" value="{{ request.url.path }}" />
+            <label>
+              List
+              <select name="list_id" onchange="this.form.submit()">
+                {% for book_list in library.lists %} {% if
+                library.current_list.id == book_list.id %}
+                <option value="{{ book_list.id }}" selected>
+                  {{ book_list.name }}
+                </option>
+                {% else %}
+                <option value="{{ book_list.id }}">{{ book_list.name }}</option>
+                {% endif %} {% endfor %}
+              </select>
+            </label>
+          </form>
+          {% elif library and library.current_list %}
+          <span>{{ library.current_list.name }}</span>
+          {% endif %}
+          <form method="post" action="{{ url_for('logout') }}" class="nav-form">
+            <span>{{ current_user.email }}</span>
+            <button type="submit">Sign out</button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('login') }}">Sign in</a>
+          {% endif %}
+        </nav>
+      </div>
     </header>
     <main>
       {% if library and library.warnings %}

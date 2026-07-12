@@ -201,7 +201,7 @@ class FailingStore:
     async def reject_series_suggestion(self, user, suggestion_id):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
-    async def save_book_state(self, user, book_key, owned, read, list_id=None):
+    async def save_book_state(self, user, book_key, owned, read, wanted=True, list_id=None):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def save_book_states(self, user, book_states, list_id=None):

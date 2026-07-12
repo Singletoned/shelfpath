@@ -262,10 +262,15 @@ async def series_state_post(request):
     book_keys = form.getlist("book_key")
     owned_keys = set(form.getlist("owned"))
     read_keys = set(form.getlist("read"))
+    wanted_keys = set(form.getlist("wanted"))
     await request.app.state.store.save_book_states(
         user,
         {
-            book_key: {"owned": book_key in owned_keys, "read": book_key in read_keys}
+            book_key: {
+                "owned": book_key in owned_keys,
+                "read": book_key in read_keys,
+                "wanted": book_key in wanted_keys,
+            }
             for book_key in book_keys
         },
         _active_list_id(request),
@@ -288,6 +293,7 @@ async def book_state_post(request):
         book_key,
         owned="owned" in form,
         read="read" in form,
+        wanted="wanted" in form,
         list_id=_active_list_id(request),
     )
     return RedirectResponse(_redirect_target(request, book_key), status_code=HTTP_SEE_OTHER)

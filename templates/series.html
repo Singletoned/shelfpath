@@ -1,9 +1,20 @@
 {% extends "base.html" %} {% block title %}{{ series.title }} · Shelfpath{%
 endblock title %} {% block content %}
-<h2>{{ series.title }}</h2>
-{% if series.author %}
-<p class="muted">{{ series.author }}</p>
-{% endif %} {% if series.source %}
+<section class="screen-header">
+  <a href="{{ url_for('index') }}">‹ Shelf</a>
+  <h2>{{ series.title }}</h2>
+  <p class="faint">
+    {% if series.author %}{{ series.author }}{% endif %}{% if series.order %}{%
+    if series.author %} · {% endif %}{{ series.order }}{% endif %}
+  </p>
+  <div class="pill-row">
+    <span class="pill all">All {{ series.book_count }}</span>
+    <span class="pill want">Wanted {{ series.wanted_count }}</span>
+    <span class="pill own">Owned {{ series.owned_count }}</span>
+  </div>
+</section>
+
+{% if series.source %}
 <p class="muted">
   Source: {% if series.source.url %}
   <a href="{{ series.source.url }}"
@@ -15,20 +26,15 @@ endblock title %} {% block content %}
 {% if series.source.notes %}
 <p class="muted">{{ series.source.notes }}</p>
 {% endif %} {% endif %}
-<p>
-  {{ series.owned_count }} / {{ series.book_count }} owned · {{
-  series.read_count }} / {{ series.book_count }} read · {{ series.missing_count
-  }} missing
-</p>
 
 <div class="actions" aria-label="Sort books">
   <a
-    class="button {% if sort_order == 'series' %}active{% endif %}"
+    class="button {% if sort_order == 'series' %}active{% else %}secondary{% endif %}"
     href="{{ url_for('series', series_id=series.id) }}?sort=series"
     >Series order</a
   >
   <a
-    class="button {% if sort_order == 'title' %}active{% endif %}"
+    class="button {% if sort_order == 'title' %}active{% else %}secondary{% endif %}"
     href="{{ url_for('series', series_id=series.id) }}?sort=title"
     >Alphabetical</a
   >
@@ -39,51 +45,82 @@ endblock title %} {% block content %}
   action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}"
 >
   <p><button type="submit">Save all changes</button></p>
-  <ol class="book-list">
+  <ol class="book-list series-detail-layout">
     {% for book in series.books %}
-    <li class="book {% if book.owned %}owned{% endif %}">
-      <div>
-        <div class="book-title">{{ book.position }}. {{ book.title }}</div>
+    <li
+      class="book-row {% if book.wanted and not book.owned %}hunting{% endif %}"
+    >
+      <div class="book-number">{{ book.position }}</div>
+      {% if book.cover_url %}
+      <img
+        class="cover"
+        src="{{ book.cover_url }}"
+        alt="Cover of {{ book.title }}"
+        loading="lazy"
+      />
+      {% else %}
+      <div class="cover-placeholder" aria-label="No cover available">cover</div>
+      {% endif %}
+      <div class="book-main">
+        <div class="book-title">{{ book.title }}</div>
         {% if book.author and book.author != series.author %}
-        <div class="muted">{{ book.author }}</div>
-        {% endif %} {% if book.read and not book.owned %}
-        <div class="muted">Read, not currently owned</div>
+        <div class="book-meta">{{ book.author }}</div>
         {% endif %}
-      </div>
-      <input type="hidden" name="book_key" value="{{ book['key'] }}" />
-      <div class="checkbox-row">
-        <label>
-          <input
-            type="checkbox"
-            name="owned"
-            value="{{ book['key'] }}"
-            {%
-            if
-            book.owned
-            %}checked{%
-            endif
-            %}
-          />
-          Owned
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            name="read"
-            value="{{ book['key'] }}"
-            {%
-            if
-            book.read
-            %}checked{%
-            endif
-            %}
-          />
-          Read
-        </label>
+        <input type="hidden" name="book_key" value="{{ book['key'] }}" />
+        <div class="chip-row">
+          <label>
+            <input
+              class="chip-input"
+              type="checkbox"
+              name="wanted"
+              value="{{ book['key'] }}"
+              {%
+              if
+              book.wanted
+              %}checked{%
+              endif
+              %}
+            />
+            <span class="chip want">WANT</span>
+          </label>
+          <label>
+            <input
+              class="chip-input"
+              type="checkbox"
+              name="owned"
+              value="{{ book['key'] }}"
+              {%
+              if
+              book.owned
+              %}checked{%
+              endif
+              %}
+            />
+            <span class="chip own">OWN</span>
+          </label>
+          <label>
+            <input
+              class="chip-input"
+              type="checkbox"
+              name="read"
+              value="{{ book['key'] }}"
+              {%
+              if
+              book.read
+              %}checked{%
+              endif
+              %}
+            />
+            <span class="chip read">READ</span>
+          </label>
+        </div>
       </div>
     </li>
     {% endfor %}
   </ol>
   <p><button type="submit">Save all changes</button></p>
 </form>
+<p class="attribution">
+  Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
+</p>
 {% endblock content %}

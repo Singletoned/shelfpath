@@ -57,6 +57,7 @@ class Store(Protocol):
         book_key: str,
         owned: bool,
         read: bool,
+        wanted: bool = True,
         list_id: str | None = None,
     ) -> None: ...
 
@@ -129,9 +130,10 @@ class FileStore:
         book_key: str,
         owned: bool,
         read: bool,
+        wanted: bool = True,
         list_id: str | None = None,
     ) -> None:
-        save_book_state(self.data_dir, book_key, owned, read)
+        save_book_state(self.data_dir, book_key, owned, read, wanted)
 
     async def save_book_states(
         self,
@@ -164,7 +166,7 @@ class SupabaseStore:
         state_rows = await self._request(
             current_user,
             "GET",
-            f"/rest/v1/book_states?select=book_id,owned,read&list_id=eq.{current_list['id']}",
+            f"/rest/v1/book_states?select=book_id,owned,read,wanted&list_id=eq.{current_list['id']}",
         )
         library = _merge_rows(series_rows, book_rows, state_rows)
         library["lists"] = lists
@@ -298,9 +300,12 @@ class SupabaseStore:
         book_key: str,
         owned: bool,
         read: bool,
+        wanted: bool = True,
         list_id: str | None = None,
     ) -> None:
-        await self.save_book_states(user, {book_key: {"owned": owned, "read": read}}, list_id)
+        await self.save_book_states(
+            user, {book_key: {"owned": owned, "read": read, "wanted": wanted}}, list_id
+        )
 
     async def save_book_states(
         self,
@@ -330,6 +335,7 @@ class SupabaseStore:
                 "book_id": ids_by_key[book_key],
                 "owned": book_state["owned"],
                 "read": book_state["read"],
+                "wanted": book_state.get("wanted", True),
             }
             for book_key, book_state in book_states.items()
         ]
@@ -451,6 +457,8 @@ def _merge_rows(
             "key": row["key"],
             "owned": bool(state.get("owned", False)),
             "read": bool(state.get("read", False)),
+            "wanted": bool(state.get("wanted", True)),
+            "cover_url": _openlibrary_cover_url(row.get("openlibrary_cover_id")),
         }
         books_by_series.setdefault(row["series_id"], []).append(book)
         books_by_key[row["key"]] = book
@@ -460,6 +468,7 @@ def _merge_rows(
         books = books_by_series.get(row["id"], [])
         owned_count = sum(1 for book in books if book["owned"])
         read_count = sum(1 for book in books if book["read"])
+        wanted_count = sum(1 for book in books if book["wanted"] and not book["owned"])
         merged_series.append(
             {
                 "id": row["id"],
@@ -471,10 +480,17 @@ def _merge_rows(
                 "book_count": len(books),
                 "owned_count": owned_count,
                 "read_count": read_count,
-                "missing_count": len(books) - owned_count,
+                "wanted_count": wanted_count,
+                "missing_count": wanted_count,
             }
         )
     return {"series": merged_series, "books_by_key": books_by_key, "warnings": []}
+
+
+def _openlibrary_cover_url(cover_id: int | None) -> str | None:
+    if cover_id is None:
+        return None
+    return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
 
 
 def _proposal_sources(proposal: dict[str, Any] | None) -> Any | None:

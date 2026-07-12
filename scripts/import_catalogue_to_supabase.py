@@ -52,6 +52,7 @@ def _upsert_books(client: httpx.Client, supabase_url: str, series: list[dict[str
                     "title": book["title"],
                     "position": book["position"],
                     "author": book.get("author"),
+                    "openlibrary_cover_id": book.get("openlibrary_cover_id"),
                 }
             )
     _post(client, f"{supabase_url}/rest/v1/books?on_conflict=series_id,book_id", rows)

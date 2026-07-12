@@ -32,8 +32,10 @@ def load_library(data_dir: Path) -> dict[str, Any]:
     return _merge_library(series, state)
 
 
-def save_book_state(data_dir: Path, book_key: str, owned: bool, read: bool) -> None:
-    save_book_states(data_dir, {book_key: {"owned": owned, "read": read}})
+def save_book_state(
+    data_dir: Path, book_key: str, owned: bool, read: bool, wanted: bool = True
+) -> None:
+    save_book_states(data_dir, {book_key: {"owned": owned, "read": read, "wanted": wanted}})
 
 
 def save_book_states(data_dir: Path, book_states: dict[str, dict[str, bool]]) -> None:
@@ -46,7 +48,11 @@ def save_book_states(data_dir: Path, book_states: dict[str, dict[str, bool]]) ->
     state = _load_state(state_path)
     books = state.setdefault(BOOK_STATE_ROOT, {})
     for book_key, book_state in book_states.items():
-        books[book_key] = {"owned": book_state["owned"], "read": book_state["read"]}
+        books[book_key] = {
+            "owned": book_state["owned"],
+            "read": book_state["read"],
+            "wanted": book_state.get("wanted", True),
+        }
     _write_yaml(state_path, state)
 
 
@@ -95,6 +101,7 @@ def _validate_series(path: Path, series: dict[str, Any]) -> dict[str, Any]:
                 "title": _required_string(path, book, "title"),
                 "position": book.get("position", index),
                 "author": _optional_string(path, book, "author") or author,
+                "openlibrary_cover_id": _optional_int(path, book, "openlibrary_cover_id"),
             }
         )
 
@@ -125,6 +132,7 @@ def _load_state(state_path: Path) -> dict[str, Any]:
             raise LibraryValidationError(f"{state_path}: {book_key} state must be a mapping.")
         _validate_bool(state_path, book_key, book_state, "owned")
         _validate_bool(state_path, book_key, book_state, "read")
+        _validate_bool(state_path, book_key, book_state, "wanted")
     return state
 
 
@@ -138,16 +146,20 @@ def _merge_library(series: list[dict[str, Any]], state: dict[str, Any]) -> dict[
         merged_books = []
         owned_count = 0
         read_count = 0
+        wanted_count = 0
         for book in series_item["books"]:
             book_key = f"{series_item['id']}/{book['id']}"
             book_state = state_books.get(book_key, {})
             owned = bool(book_state.get("owned", False))
             read = bool(book_state.get("read", False))
+            wanted = bool(book_state.get("wanted", True))
             merged_book = {
                 **book,
                 "key": book_key,
                 "owned": owned,
                 "read": read,
+                "wanted": wanted,
+                "cover_url": _openlibrary_cover_url(book.get("openlibrary_cover_id")),
             }
             books_by_key[book_key] = merged_book
             merged_books.append(merged_book)
@@ -155,6 +167,8 @@ def _merge_library(series: list[dict[str, Any]], state: dict[str, Any]) -> dict[
                 owned_count += 1
             if read:
                 read_count += 1
+            if wanted and not owned:
+                wanted_count += 1
 
         merged_series.append(
             {
@@ -163,7 +177,8 @@ def _merge_library(series: list[dict[str, Any]], state: dict[str, Any]) -> dict[
                 "book_count": len(merged_books),
                 "owned_count": owned_count,
                 "read_count": read_count,
-                "missing_count": len(merged_books) - owned_count,
+                "wanted_count": wanted_count,
+                "missing_count": wanted_count,
             }
         )
 
@@ -188,6 +203,15 @@ def _required_string(path: Path, data: dict[str, Any], field: str) -> str:
     value = data.get(field)
     if not isinstance(value, str) or not value.strip():
         raise LibraryValidationError(f"{path}: {field} must be a non-empty string.")
+    return value
+
+
+def _optional_int(path: Path, data: dict[str, Any], field: str) -> int | None:
+    value = data.get(field)
+    if value is None:
+        return None
+    if not isinstance(value, int):
+        raise LibraryValidationError(f"{path}: {field} must be an integer when set.")
     return value
 
 
@@ -223,6 +247,13 @@ def _optional_source(path: Path, data: dict[str, Any]) -> dict[str, str] | None:
 
 
 def _validate_bool(path: Path, book_key: str, book_state: dict[str, Any], field: str) -> None:
-    value = book_state.get(field, False)
+    default = True if field == "wanted" else False
+    value = book_state.get(field, default)
     if not isinstance(value, bool):
         raise LibraryValidationError(f"{path}: {book_key}.{field} must be true or false.")
+
+
+def _openlibrary_cover_url(cover_id: int | None) -> str | None:
+    if cover_id is None:
+        return None
+    return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
