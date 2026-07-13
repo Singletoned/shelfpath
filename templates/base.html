@@ -307,13 +307,13 @@
       }
 
       .book-row {
-        align-items: center;
+        align-items: start;
         background: var(--paper);
         border-bottom: 1px solid var(--line);
         display: grid;
-        gap: 0.65rem;
-        grid-template-columns: 1.4rem 2.125rem minmax(0, 1fr);
-        padding: 0.6rem 1rem 0.6rem 1.25rem;
+        gap: 0.7rem;
+        grid-template-columns: 1.4rem 3rem minmax(0, 1fr);
+        padding: 0.75rem 1rem 0.75rem 1.25rem;
       }
 
       .book-row.hunting {
@@ -325,6 +325,7 @@
         color: var(--faint);
         font-size: 0.82rem;
         font-weight: 700;
+        padding-top: 1.35rem;
         text-align: right;
       }
 
@@ -336,7 +337,7 @@
         display: block;
         height: auto;
         object-fit: cover;
-        width: 2.125rem;
+        width: 3rem;
       }
 
       .cover-placeholder {
@@ -356,6 +357,10 @@
       }
 
       .book-main {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 4.5rem;
         min-width: 0;
       }
 
@@ -378,10 +383,11 @@
       }
 
       .chip-row {
+        align-items: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.3rem;
-        margin-top: 0.45rem;
+        gap: 0.35rem;
+        margin-top: 0.4rem;
       }
 
       .chip-input {
@@ -391,6 +397,7 @@
       }
 
       .chip {
+        align-items: center;
         border: 1.5px solid var(--ghost-line);
         border-radius: 999px;
         color: var(--ghost);
@@ -398,9 +405,11 @@
         display: inline-flex;
         font-size: 0.66rem;
         font-weight: 800;
+        justify-content: center;
         letter-spacing: 0.02em;
-        min-height: 2rem;
-        padding: 0.38rem 0.48rem;
+        line-height: 1;
+        min-height: 1.75rem;
+        padding: 0.35rem 0.58rem;
       }
 
       .chip-input:checked + .chip.want {

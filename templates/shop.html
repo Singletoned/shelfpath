@@ -30,6 +30,17 @@ title %} {% block content %}
         src="{{ book.cover_url }}"
         alt="Cover of {{ book.title }}"
         loading="lazy"
+        {%
+        if
+        book.remote_cover_url
+        and
+        book.remote_cover_url
+        !="book.cover_url"
+        %}
+        onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
+        {%
+        endif
+        %}
       />
       {% else %}
       <div class="cover-placeholder" aria-label="No cover available">cover</div>

@@ -3,12 +3,14 @@ from __future__ import annotations
 from starlette.applications import Starlette
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
-from starlette.routing import Route
+from starlette.routing import Mount, Route
+from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from booksequencer.ai_series import OpenAISeriesInvestigator
 from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
+from booksequencer.covers import COVER_ROOT
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
@@ -365,6 +367,7 @@ def create_app(
                 methods=("POST",),
                 name="book_state",
             ),
+            Mount("/covers", StaticFiles(directory=COVER_ROOT, check_dir=False), name="covers"),
         ],
     )
     app.state.settings = resolved_settings

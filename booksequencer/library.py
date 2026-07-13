@@ -5,6 +5,8 @@ from typing import Any
 
 import yaml
 
+from booksequencer.covers import openlibrary_cover_urls
+
 SERIES_DIR_NAME = "series"
 STATE_FILE_NAME = "state.yaml"
 BOOK_STATE_ROOT = "books"
@@ -153,13 +155,15 @@ def _merge_library(series: list[dict[str, Any]], state: dict[str, Any]) -> dict[
             owned = bool(book_state.get("owned", False))
             read = bool(book_state.get("read", False))
             wanted = bool(book_state.get("wanted", True))
+            cover_url, remote_cover_url = openlibrary_cover_urls(book.get("openlibrary_cover_id"))
             merged_book = {
                 **book,
                 "key": book_key,
                 "owned": owned,
                 "read": read,
                 "wanted": wanted,
-                "cover_url": _openlibrary_cover_url(book.get("openlibrary_cover_id")),
+                "cover_url": cover_url,
+                "remote_cover_url": remote_cover_url,
             }
             books_by_key[book_key] = merged_book
             merged_books.append(merged_book)
@@ -251,9 +255,3 @@ def _validate_bool(path: Path, book_key: str, book_state: dict[str, Any], field:
     value = book_state.get(field, default)
     if not isinstance(value, bool):
         raise LibraryValidationError(f"{path}: {book_key}.{field} must be true or false.")
-
-
-def _openlibrary_cover_url(cover_id: int | None) -> str | None:
-    if cover_id is None:
-        return None
-    return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"

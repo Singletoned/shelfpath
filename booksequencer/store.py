@@ -5,6 +5,7 @@ from typing import Any, Protocol
 
 import httpx
 
+from booksequencer.covers import openlibrary_cover_urls
 from booksequencer.library import load_library, save_book_state, save_book_states
 
 DEFAULT_LIST_NAME = "My books"
@@ -547,6 +548,7 @@ def _merge_rows(
 
     for row in book_rows:
         state = states_by_book_id.get(row["id"], {})
+        cover_url, remote_cover_url = openlibrary_cover_urls(row.get("openlibrary_cover_id"))
         book = {
             "id": row["book_id"],
             "title": row["title"],
@@ -556,7 +558,8 @@ def _merge_rows(
             "owned": bool(state.get("owned", False)),
             "read": bool(state.get("read", False)),
             "wanted": bool(state.get("wanted", True)),
-            "cover_url": _openlibrary_cover_url(row.get("openlibrary_cover_id")),
+            "cover_url": cover_url,
+            "remote_cover_url": remote_cover_url,
         }
         books_by_series.setdefault(row["series_id"], []).append(book)
         books_by_key[row["key"]] = book
@@ -583,12 +586,6 @@ def _merge_rows(
             }
         )
     return {"series": merged_series, "books_by_key": books_by_key, "warnings": []}
-
-
-def _openlibrary_cover_url(cover_id: int | None) -> str | None:
-    if cover_id is None:
-        return None
-    return f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
 
 
 def _proposal_sources(proposal: dict[str, Any] | None) -> Any | None:

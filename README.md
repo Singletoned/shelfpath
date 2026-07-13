@@ -63,7 +63,7 @@ just local-supabase-stop
 
 `local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. `local-run` runs Shelfpath against that local database and logs in immediately through `/login`.
 
-The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine.
+The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine. Run `just local-covers-fetch` while online to populate local Open Library cover IDs and cache cover images for offline design checks.
 
 For hosted Supabase-backed testing without magic-link email, you can set these in `.env` instead:
 
@@ -103,11 +103,26 @@ Import catalogue data from the separate `data/` repository with:
 just catalogue-import
 ```
 
-Fetch Open Library cover IDs for books that do not have one yet with:
+Fetch Open Library cover IDs for books that do not have one yet and cache the corresponding cover images locally with:
 
 ```sh
 just covers-fetch
 ```
+
+If the IDs are already populated and you only need to refresh the gitignored local image cache, run:
+
+```sh
+just covers-cache
+```
+
+Local Supabase has equivalent commands:
+
+```sh
+just local-covers-fetch
+just local-covers-cache
+```
+
+Cached images live under gitignored `static/covers/` and are served from `/covers/`. Shelfpath falls back to Open Library when a cached image is not present.
 
 `just catalogue-import`, `just covers-fetch`, and hosted local test auth require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access outside service-role fallback auth. The local Supabase sandbox stores its own generated local-only service key in gitignored `local-supabase.env`.
 
@@ -196,7 +211,7 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 - `/login` signs in with Supabase magic-link auth.
 - `/lists` chooses the active collecting list and lets owners share a list by email as an editor or viewer. If the email address does not have a Supabase account yet, Shelfpath records a pending invitation that is accepted automatically when that person signs in.
 - `/suggest` lets allow-listed logged-in users ask OpenAI to investigate a new ordered series, review the proposed books and provenance, then approve or reject the proposal.
-- Book rows show Open Library covers when `books.openlibrary_cover_id` is populated and a striped placeholder otherwise.
+- Book rows show cached Open Library covers when `books.openlibrary_cover_id` is populated and the image has been downloaded to `static/covers/`, fall back to Open Library when uncached, and show a striped placeholder otherwise.
 - `/` lists series and progress.
 - `/series/{series_id}` shows a series in order with wanted/owned/read controls.
 - `/shop` shows wanted books that are not currently owned, grouped by series.

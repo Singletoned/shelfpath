@@ -13,22 +13,29 @@ run:
 local-supabase-start:
     supabase start
     PYTHONPATH=. uv run python scripts/write_local_supabase_env.py
-    PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
 
 local-supabase-reset:
     supabase db reset
     PYTHONPATH=. uv run python scripts/write_local_supabase_env.py
-    PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
-    PYTHONPATH=. uv run --env-file local-supabase.env python scripts/import_catalogue_to_supabase.py
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/import_catalogue_to_supabase.py
 
 local-supabase-stop:
     supabase stop
 
 local-run:
-    uv run --env-file local-supabase.env uvicorn app:app --reload --host 127.0.0.1 --port 8731
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE uv run --env-file local-supabase.env uvicorn app:app --reload --host 127.0.0.1 --port 8731
 
 local-covers-fetch:
-    PYTHONPATH=. uv run --env-file local-supabase.env python scripts/fetch_openlibrary_covers.py
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/fetch_openlibrary_covers.py
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/cache_openlibrary_covers.py
+
+local-covers-cache:
+    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/cache_openlibrary_covers.py
+
+screenshots:
+    ./scripts/take_design_screenshots.sh
 
 supabase-link:
     ./scripts/link_supabase_project.sh
@@ -41,6 +48,10 @@ catalogue-import:
 
 covers-fetch:
     PYTHONPATH=. uv run --env-file .env python scripts/fetch_openlibrary_covers.py
+    PYTHONPATH=. uv run --env-file .env python scripts/cache_openlibrary_covers.py
+
+covers-cache:
+    PYTHONPATH=. uv run --env-file .env python scripts/cache_openlibrary_covers.py
 
 ai-allow email:
     PYTHONPATH=. uv run --env-file .env python scripts/allow_ai_suggestion_user.py {{ email }}
