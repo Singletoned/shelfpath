@@ -21,6 +21,9 @@ local-supabase-reset:
     PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
     PYTHONPATH=. uv run --env-file local-supabase.env python scripts/import_catalogue_to_supabase.py
 
+local-supabase-stop:
+    supabase stop
+
 local-run:
     uv run --env-file local-supabase.env uvicorn app:app --reload --host 127.0.0.1 --port 8731
 

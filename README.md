@@ -55,6 +55,12 @@ just local-supabase-reset
 just local-run
 ```
 
+Stop the local Supabase stack with:
+
+```sh
+just local-supabase-stop
+```
+
 `local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. `local-run` runs Shelfpath against that local database and logs in immediately through `/login`.
 
 The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine.
