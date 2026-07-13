@@ -47,6 +47,15 @@ Open <http://127.0.0.1:8731/>.
 
 This project hardcodes port `8731` in the local `just run` task and Supabase local redirect configuration to avoid common defaults such as `8000` and `8080`.
 
+For local Supabase-backed testing without magic-link email, set these in `.env`:
+
+```sh
+SHELFPATH_LOCAL_AUTH_EMAIL=you@example.com
+SUPABASE_SERVICE_ROLE_KEY=<secret key>
+```
+
+With `SHELFPATH_DEBUG=true`, visiting `/login` signs in as that existing Supabase user and redirects immediately. This bypass is deliberately local-only and requires the service-role key; do not configure it in Render.
+
 ## Supabase setup
 
 Supabase schema changes are managed from this repository. Do not paste migrations into the dashboard for normal development. On GitHub, `.github/workflows/supabase.yml` pushes migrations automatically when `supabase/**` changes on `main`, once the required repository secrets are configured.
@@ -82,7 +91,7 @@ Fetch Open Library cover IDs for books that do not have one yet with:
 just covers-fetch
 ```
 
-`just catalogue-import` and `just covers-fetch` require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access.
+`just catalogue-import`, `just covers-fetch`, and local test auth require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access outside local test auth.
 
 To apply both database migrations and catalogue import locally:
 

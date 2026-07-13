@@ -43,6 +43,24 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 303)
         self.assertEqual(response.headers["location"], "/login?next=/")
 
+    def test_local_auth_mode_sets_session_without_magic_link(self):
+        settings = self._settings(Path("unused"), storage="supabase").__class__(
+            **{
+                **self._settings(Path("unused"), storage="supabase").__dict__,
+                "local_auth_email": "test@example.invalid",
+                "supabase_service_role_key": "service-role-key",
+            }
+        )
+        store = LocalAuthStore()
+        app = app_module.create_app(settings=settings, store=store)
+        client = TestClient(app)
+
+        response = client.get("/login?next=/shop", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(response.headers["location"], "/shop")
+        self.assertEqual(store.email, "test@example.invalid")
+
     def test_series_page_can_sort_by_title(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -139,6 +157,8 @@ class AppTests(unittest.TestCase):
             debug=True,
             openai_api_key=None,
             openai_model="test-model",
+            local_auth_email=None,
+            supabase_service_role_key=None,
         )
 
     def _write_data(self, data_dir: Path) -> None:
@@ -173,6 +193,22 @@ class AppTests(unittest.TestCase):
             yaml.safe_dump(data, handle)
 
 
+class LocalAuthStore:
+    def __init__(self):
+        self.email = None
+
+    async def local_test_user(self, email):
+        self.email = email
+        return {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "email": email,
+            "access_token": "service-role-key",
+            "refresh_token": "local-testing",
+            "expires_at": None,
+            "local_auth": True,
+        }
+
+
 class FailingStore:
     async def load_library(self, user, list_id=None):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
@@ -181,6 +217,9 @@ class FailingStore:
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def share_list(self, user, list_id, email, role):
+        raise AssertionError("Store should not be called for anonymous Supabase users.")
+
+    async def local_test_user(self, email):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def can_suggest_series(self, user):

@@ -22,6 +22,8 @@ class Settings:
     debug: bool
     openai_api_key: str | None
     openai_model: str
+    local_auth_email: str | None
+    supabase_service_role_key: str | None
 
 
 def load_settings() -> Settings:
@@ -38,7 +40,16 @@ def load_settings() -> Settings:
         debug=os.environ.get("SHELFPATH_DEBUG", _default_debug()).lower() == "true",
         openai_api_key=os.environ.get("OPENAI_API_KEY"),
         openai_model=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
+        local_auth_email=_optional_env("SHELFPATH_LOCAL_AUTH_EMAIL"),
+        supabase_service_role_key=_optional_env("SUPABASE_SERVICE_ROLE_KEY"),
     )
+
+
+def _optional_env(name: str) -> str | None:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return None
+    return value
 
 
 def _default_storage(publishable_key: str | None) -> str:

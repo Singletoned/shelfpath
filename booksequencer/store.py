@@ -26,6 +26,8 @@ class Store(Protocol):
         role: str,
     ) -> None: ...
 
+    async def local_test_user(self, email: str) -> dict[str, Any]: ...
+
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool: ...
 
     async def suggestion_count_today(self, user: dict[str, Any] | None) -> int: ...
@@ -93,6 +95,9 @@ class FileStore:
     ) -> None:
         raise ValueError("Shared lists require Supabase storage.")
 
+    async def local_test_user(self, email: str) -> dict[str, Any]:
+        raise ValueError("Local test auth requires Supabase storage.")
+
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:
         return False
 
@@ -145,9 +150,15 @@ class FileStore:
 
 
 class SupabaseStore:
-    def __init__(self, supabase_url: str, publishable_key: str) -> None:
+    def __init__(
+        self,
+        supabase_url: str,
+        publishable_key: str,
+        service_role_key: str | None = None,
+    ) -> None:
         self.supabase_url = supabase_url.rstrip("/")
         self.publishable_key = publishable_key
+        self.service_role_key = service_role_key
 
     async def load_library(
         self, user: dict[str, Any] | None, list_id: str | None = None
@@ -212,6 +223,28 @@ class SupabaseStore:
                 "member_role": role,
             },
         )
+
+    async def local_test_user(self, email: str) -> dict[str, Any]:
+        if not self.service_role_key:
+            raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for local test auth.")
+        normalized_email = email.strip().lower()
+        if not normalized_email:
+            raise ValueError("SHELFPATH_LOCAL_AUTH_EMAIL must not be empty.")
+        user_id = await self._service_request(
+            "POST",
+            "/rest/v1/rpc/local_auth_user_by_email",
+            json={"target_email": normalized_email},
+        )
+        if not isinstance(user_id, str) or not user_id:
+            raise ValueError(f"No Supabase user found for {normalized_email}.")
+        return {
+            "id": user_id,
+            "email": normalized_email,
+            "access_token": self.service_role_key,
+            "refresh_token": "local-testing",
+            "expires_at": None,
+            "local_auth": True,
+        }
 
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:
         current_user = _require_user(user)
@@ -372,9 +405,16 @@ class SupabaseStore:
         json: Any | None = None,
         extra_headers: dict[str, str] | None = None,
     ) -> Any:
+        api_key = self.publishable_key
+        access_token = user["access_token"]
+        if user.get("local_auth") is True:
+            if not self.service_role_key:
+                raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for local test auth.")
+            api_key = self.service_role_key
+            access_token = self.service_role_key
         headers = {
-            "apikey": self.publishable_key,
-            "Authorization": f"Bearer {user['access_token']}",
+            "apikey": api_key,
+            "Authorization": f"Bearer {access_token}",
         }
         if extra_headers:
             headers.update(extra_headers)
@@ -391,16 +431,45 @@ class SupabaseStore:
             return None
         return response.json()
 
+    async def _service_request(
+        self,
+        method: str,
+        path: str,
+        json: Any | None = None,
+    ) -> Any:
+        if not self.service_role_key:
+            raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for service requests.")
+        headers = {
+            "apikey": self.service_role_key,
+            "Authorization": f"Bearer {self.service_role_key}",
+        }
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.request(
+                method,
+                f"{self.supabase_url}{path}",
+                headers=headers,
+                json=json,
+            )
+        if response.status_code >= 400:
+            raise RuntimeError(f"Supabase request failed: {response.status_code} {response.text}")
+        if not response.content:
+            return None
+        return response.json()
+
 
 def build_store(
-    storage: str, data_dir: Path, supabase_url: str | None, publishable_key: str | None
+    storage: str,
+    data_dir: Path,
+    supabase_url: str | None,
+    publishable_key: str | None,
+    service_role_key: str | None = None,
 ) -> Store:
     if storage == "file":
         return FileStore(data_dir)
     if storage == "supabase":
         if not supabase_url or not publishable_key:
             raise ValueError("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required.")
-        return SupabaseStore(supabase_url, publishable_key)
+        return SupabaseStore(supabase_url, publishable_key, service_role_key)
     raise ValueError(f"Unknown storage backend: {storage}")
 
 

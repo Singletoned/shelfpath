@@ -200,6 +200,13 @@ async def list_share_post(request):
 
 async def login_get(request):
     settings = request.app.state.settings
+    if settings.local_auth_email and settings.debug and settings.storage == STORAGE_SUPABASE:
+        request.session["user"] = await request.app.state.store.local_test_user(
+            settings.local_auth_email
+        )
+        return RedirectResponse(
+            _safe_next(request.query_params.get("next", "/")), status_code=HTTP_SEE_OTHER
+        )
     return templates.TemplateResponse(
         request,
         "login.html",
@@ -310,6 +317,7 @@ def create_app(
         resolved_settings.data_dir,
         resolved_settings.supabase_url,
         resolved_settings.supabase_publishable_key,
+        resolved_settings.supabase_service_role_key,
     )
     app = Starlette(
         debug=resolved_settings.debug,

@@ -40,6 +40,8 @@ async def fresh_user(
         return None
     if not supabase_url or not publishable_key:
         return user
+    if user.get("local_auth") is True:
+        return user
     if not user.get("refresh_token"):
         request.session.clear()
         return None
