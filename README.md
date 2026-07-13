@@ -47,14 +47,26 @@ Open <http://127.0.0.1:8731/>.
 
 This project hardcodes port `8731` in the local `just run` task and Supabase local redirect configuration to avoid common defaults such as `8000` and `8080`.
 
-For local Supabase-backed testing without magic-link email, set these in `.env`:
+For local Supabase-backed testing without touching live data or waiting for magic-link email, use the local Supabase sandbox:
+
+```sh
+just local-supabase-start
+just local-supabase-reset
+just local-run
+```
+
+`local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. `local-run` runs Shelfpath against that local database and logs in immediately through `/login`.
+
+The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine.
+
+For hosted Supabase-backed testing without magic-link email, you can set these in `.env` instead:
 
 ```sh
 SHELFPATH_LOCAL_AUTH_EMAIL=you@example.com
 SUPABASE_SERVICE_ROLE_KEY=<secret key>
 ```
 
-With `SHELFPATH_DEBUG=true`, visiting `/login` signs in as that existing Supabase user and redirects immediately. This bypass is deliberately local-only and requires the service-role key; do not configure it in Render.
+With `SHELFPATH_DEBUG=true`, visiting `/login` signs in as that existing Supabase user and redirects immediately. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Render.
 
 ## Supabase setup
 
@@ -91,7 +103,7 @@ Fetch Open Library cover IDs for books that do not have one yet with:
 just covers-fetch
 ```
 
-`just catalogue-import`, `just covers-fetch`, and local test auth require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access outside local test auth.
+`just catalogue-import`, `just covers-fetch`, and hosted local test auth require `SUPABASE_SERVICE_ROLE_KEY` in your local `.env` or shell. Do not commit it. The app itself uses the user's Supabase access token for normal runtime database reads/writes, so row-level security policies apply to list and book-state access outside service-role fallback auth. The local Supabase sandbox stores its own generated local-only service key in gitignored `local-supabase.env`.
 
 To apply both database migrations and catalogue import locally:
 

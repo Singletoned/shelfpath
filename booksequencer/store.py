@@ -26,7 +26,7 @@ class Store(Protocol):
         role: str,
     ) -> None: ...
 
-    async def local_test_user(self, email: str) -> dict[str, Any]: ...
+    async def local_test_user(self, email: str, password: str | None) -> dict[str, Any]: ...
 
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool: ...
 
@@ -95,7 +95,7 @@ class FileStore:
     ) -> None:
         raise ValueError("Shared lists require Supabase storage.")
 
-    async def local_test_user(self, email: str) -> dict[str, Any]:
+    async def local_test_user(self, email: str, password: str | None) -> dict[str, Any]:
         raise ValueError("Local test auth requires Supabase storage.")
 
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:
@@ -224,12 +224,14 @@ class SupabaseStore:
             },
         )
 
-    async def local_test_user(self, email: str) -> dict[str, Any]:
-        if not self.service_role_key:
-            raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for local test auth.")
+    async def local_test_user(self, email: str, password: str | None) -> dict[str, Any]:
         normalized_email = email.strip().lower()
         if not normalized_email:
             raise ValueError("SHELFPATH_LOCAL_AUTH_EMAIL must not be empty.")
+        if password:
+            return await self._password_auth_user(normalized_email, password)
+        if not self.service_role_key:
+            raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for local test auth.")
         user_id = await self._service_request(
             "POST",
             "/rest/v1/rpc/local_auth_user_by_email",
@@ -244,6 +246,33 @@ class SupabaseStore:
             "refresh_token": "local-testing",
             "expires_at": None,
             "local_auth": True,
+        }
+
+    async def _password_auth_user(self, email: str, password: str) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.post(
+                f"{self.supabase_url}/auth/v1/token?grant_type=password",
+                headers={"apikey": self.publishable_key},
+                json={"email": email, "password": password},
+            )
+        if response.status_code >= 400:
+            raise RuntimeError(
+                f"Local Supabase password login failed: {response.status_code} {response.text}"
+            )
+        payload = response.json()
+        user = payload.get("user")
+        access_token = payload.get("access_token")
+        refresh_token = payload.get("refresh_token")
+        if not isinstance(user, dict) or not isinstance(access_token, str):
+            raise ValueError("Supabase password login did not return a user and access token.")
+        if not isinstance(refresh_token, str):
+            raise ValueError("Supabase password login did not return a refresh token.")
+        return {
+            "id": user["id"],
+            "email": user.get("email", email),
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_at": payload.get("expires_at"),
         }
 
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool:

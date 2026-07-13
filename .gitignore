@@ -5,6 +5,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+local-supabase.env
 data/
 supabase/.temp/
+supabase/.branches/
 

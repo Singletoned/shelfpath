@@ -23,6 +23,7 @@ class Settings:
     openai_api_key: str | None
     openai_model: str
     local_auth_email: str | None
+    local_auth_password: str | None
     supabase_service_role_key: str | None
 
 
@@ -41,6 +42,7 @@ def load_settings() -> Settings:
         openai_api_key=os.environ.get("OPENAI_API_KEY"),
         openai_model=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
         local_auth_email=_optional_env("SHELFPATH_LOCAL_AUTH_EMAIL"),
+        local_auth_password=_optional_env("SHELFPATH_LOCAL_AUTH_PASSWORD"),
         supabase_service_role_key=_optional_env("SUPABASE_SERVICE_ROLE_KEY"),
     )
 

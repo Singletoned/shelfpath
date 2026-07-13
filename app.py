@@ -202,7 +202,8 @@ async def login_get(request):
     settings = request.app.state.settings
     if settings.local_auth_email and settings.debug and settings.storage == STORAGE_SUPABASE:
         request.session["user"] = await request.app.state.store.local_test_user(
-            settings.local_auth_email
+            settings.local_auth_email,
+            settings.local_auth_password,
         )
         return RedirectResponse(
             _safe_next(request.query_params.get("next", "/")), status_code=HTTP_SEE_OTHER

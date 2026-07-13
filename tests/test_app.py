@@ -48,6 +48,7 @@ class AppTests(unittest.TestCase):
             **{
                 **self._settings(Path("unused"), storage="supabase").__dict__,
                 "local_auth_email": "test@example.invalid",
+                "local_auth_password": "local-password",
                 "supabase_service_role_key": "service-role-key",
             }
         )
@@ -158,6 +159,7 @@ class AppTests(unittest.TestCase):
             openai_api_key=None,
             openai_model="test-model",
             local_auth_email=None,
+            local_auth_password=None,
             supabase_service_role_key=None,
         )
 
@@ -197,8 +199,9 @@ class LocalAuthStore:
     def __init__(self):
         self.email = None
 
-    async def local_test_user(self, email):
+    async def local_test_user(self, email, password):
         self.email = email
+        self.password = password
         return {
             "id": "00000000-0000-0000-0000-000000000001",
             "email": email,
@@ -219,7 +222,7 @@ class FailingStore:
     async def share_list(self, user, list_id, email, role):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
-    async def local_test_user(self, email):
+    async def local_test_user(self, email, password):
         raise AssertionError("Store should not be called for anonymous Supabase users.")
 
     async def can_suggest_series(self, user):
