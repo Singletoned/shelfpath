@@ -9,4 +9,6 @@ local-supabase.env
 data/
 supabase/.temp/
 supabase/.branches/
+screenshots/
+.playwright-cli/
 
