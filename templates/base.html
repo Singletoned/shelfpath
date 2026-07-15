@@ -28,6 +28,8 @@
         --orange-soft: #ffd9c2;
         --dark-card: #221d13;
         --dark-line: #3a3325;
+        --track: #ede6d6;
+        --placeholder-stripe: #f8efd9;
         font-family:
           Archivo,
           system-ui,
@@ -66,14 +68,14 @@
 
       .site-header-inner {
         display: grid;
-        gap: 0.85rem;
+        gap: 0.5rem;
       }
 
       .top-nav {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 0.75rem 1rem;
       }
 
       .wordmark {
@@ -98,18 +100,15 @@
       }
 
       .header-search {
-        align-items: center;
-        background: var(--cream);
-        border-radius: 0.75rem;
-        color: var(--faint);
-        display: flex;
-        flex: 1 1 14rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        gap: 0.55rem;
-        min-height: 2.75rem;
-        padding: 0.65rem 0.9rem;
+        border: 1.5px solid var(--cream);
+        border-radius: 999px;
+        color: var(--cream);
+        font-size: 0.82rem;
+        font-weight: 800;
+        min-height: 2.4rem;
+        padding: 0.55rem 0.8rem;
         text-decoration: none;
+        white-space: nowrap;
       }
 
       .nav-form {
@@ -207,7 +206,7 @@
       }
 
       .progress-track {
-        background: #ede6d6;
+        background: var(--track);
         border-radius: 999px;
         display: flex;
         height: 0.5rem;
@@ -283,7 +282,7 @@
       }
 
       .pill.own {
-        background: rgba(255, 248, 234, 0.18);
+        background: var(--dark-card);
         color: var(--cream);
       }
 
@@ -296,10 +295,23 @@
         text-decoration: none;
       }
 
-      .button.secondary,
-      .button.active {
+      .button.secondary {
         background: var(--paper);
         color: var(--ink);
+      }
+
+      .actions .button {
+        min-height: 2.35rem;
+      }
+
+      .save-action {
+        box-shadow: 0 2px 0 var(--strong-line);
+        min-height: 2.9rem;
+        padding-inline: 1rem;
+      }
+
+      .save-action-row {
+        margin: 0.9rem 0;
       }
 
       .book-list {
@@ -325,7 +337,8 @@
         color: var(--faint);
         font-size: 0.82rem;
         font-weight: 700;
-        padding-top: 1.35rem;
+        line-height: 1.2;
+        padding-top: 0.08rem;
         text-align: right;
       }
 
@@ -344,10 +357,10 @@
         align-items: center;
         background: repeating-linear-gradient(
           45deg,
-          #e5dcc8,
-          #e5dcc8 5px,
-          #f8efd9 5px,
-          #f8efd9 10px
+          var(--line),
+          var(--line) 5px,
+          var(--placeholder-stripe) 5px,
+          var(--placeholder-stripe) 10px
         );
         color: var(--faint);
         display: flex;
@@ -408,7 +421,7 @@
         justify-content: center;
         letter-spacing: 0.02em;
         line-height: 1;
-        min-height: 1.75rem;
+        min-height: 2.75rem;
         padding: 0.35rem 0.58rem;
       }
 
@@ -460,6 +473,10 @@
         margin-top: 1rem;
       }
 
+      .shop-section h3 a {
+        text-decoration: none;
+      }
+
       .shop-book {
         background: var(--dark-card);
         border: 1.5px solid var(--dark-line);
@@ -483,9 +500,108 @@
         margin-top: 1.5rem;
       }
 
+      .series-sidebar {
+        display: none;
+      }
+
+      main form:not(.chip-row) > label {
+        display: grid;
+        font-size: 0.82rem;
+        font-weight: 800;
+        gap: 0.4rem;
+      }
+
+      main input:not([type="hidden"]):not(.chip-input),
+      main select,
+      main textarea {
+        background: var(--paper);
+        border: 1.5px solid var(--strong-line);
+        border-radius: 0.6rem;
+        color: var(--ink);
+        font: inherit;
+        min-height: 2.75rem;
+        padding: 0.65rem 0.75rem;
+      }
+
+      main textarea {
+        line-height: 1.4;
+        min-height: 9rem;
+        resize: vertical;
+      }
+
+      @media (max-width: 759px) {
+        .site-header-inner,
+        main {
+          padding-inline: 1.25rem;
+        }
+
+        .top-nav {
+          gap: 0.5rem 0.75rem;
+        }
+
+        .wordmark {
+          margin-right: auto;
+        }
+
+        .header-search,
+        .nav-secondary,
+        .nav-list-name,
+        .nav-email {
+          display: none;
+        }
+
+        .nav-form button {
+          min-height: 2.25rem;
+          padding-inline: 0.65rem;
+        }
+      }
+
       @media (min-width: 760px) {
         .cards {
           grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        }
+
+        .series-content-layout {
+          display: grid;
+          gap: 1.5rem;
+          grid-template-columns: 15rem minmax(0, 1fr);
+        }
+
+        .series-sidebar {
+          align-self: start;
+          background: var(--paper);
+          border: 1.5px solid var(--line);
+          border-radius: 0.9rem;
+          display: block;
+          padding: 0.85rem;
+          position: sticky;
+          top: 1rem;
+        }
+
+        .series-sidebar .overline {
+          margin-bottom: 0.65rem;
+        }
+
+        .series-sidebar ul {
+          display: grid;
+          gap: 0.25rem;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .series-sidebar a {
+          border-radius: 0.45rem;
+          display: block;
+          font-size: 0.86rem;
+          font-weight: 700;
+          padding: 0.5rem 0.6rem;
+          text-decoration: none;
+        }
+
+        .series-sidebar a[aria-current="page"] {
+          background: var(--hunting);
+          color: var(--orange);
         }
 
         .series-detail-layout {
@@ -506,15 +622,29 @@
       <div class="site-header-inner">
         <nav class="top-nav">
           <a class="wordmark" href="{{ url_for('index') }}">Shelfpath</a>
-          <a href="{{ url_for('index') }}">Shelf</a>
-          <a href="{{ url_for('shop') }}">Shop check</a>
-          {% if current_user %}
-          <a href="{{ url_for('lists') }}">Lists</a>
-          <a href="{{ url_for('suggest') }}">Suggest series</a>
-          {% endif %}
-          <a class="header-search" href="{{ url_for('shop') }}"
-            >⌕ Check a book…</a
+          <a
+            class="{% if request.url.path == '/' %}active{% endif %}"
+            href="{{ url_for('index') }}"
+            >Shelf</a
           >
+          <a
+            class="{% if request.url.path == '/shop' %}active{% endif %}"
+            href="{{ url_for('shop') }}"
+            >Shop check</a
+          >
+          {% if current_user %}
+          <a
+            class="nav-secondary {% if request.url.path == '/lists' %}active{% endif %}"
+            href="{{ url_for('lists') }}"
+            >Lists</a
+          >
+          <a
+            class="nav-secondary {% if request.url.path == '/suggest' %}active{% endif %}"
+            href="{{ url_for('suggest') }}"
+            >Suggest series</a
+          >
+          {% endif %}
+          <a class="header-search" href="{{ url_for('shop') }}">⌕ Shop check</a>
           {% if current_user %} {% if library and library.lists|length > 1 %}
           <form
             method="post"
@@ -537,10 +667,10 @@
             </label>
           </form>
           {% elif library and library.current_list %}
-          <span>{{ library.current_list.name }}</span>
+          <span class="nav-list-name">{{ library.current_list.name }}</span>
           {% endif %}
           <form method="post" action="{{ url_for('logout') }}" class="nav-form">
-            <span>{{ current_user.email }}</span>
+            <span class="nav-email">{{ current_user.email }}</span>
             <button type="submit">Sign out</button>
           </form>
           {% else %}

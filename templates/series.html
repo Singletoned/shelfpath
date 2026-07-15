@@ -14,124 +14,150 @@ endblock title %} {% block content %}
   </div>
 </section>
 
-{% if series.source %}
-<p class="muted">
-  Source: {% if series.source.url %}
-  <a href="{{ series.source.url }}"
-    >{{ series.source.name or series.source.url }}</a
-  >
-  {% else %} {{ series.source.name }} {% endif %} {% if series.source.accessed
-  %} · accessed {{ series.source.accessed }}{% endif %}
-</p>
-{% if series.source.notes %}
-<p class="muted">{{ series.source.notes }}</p>
-{% endif %} {% endif %}
+<div class="series-content-layout">
+  <aside class="series-sidebar" aria-label="My series">
+    <p class="overline">My series</p>
+    <ul>
+      {% for sidebar_series in library.series %}
+      <li>
+        <a
+          aria-current="{% if sidebar_series.id == series.id %}page{% endif %}"
+          href="{{ url_for('series', series_id=sidebar_series.id) }}"
+          >{{ sidebar_series.title }}</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </aside>
+  <div class="series-content">
+    {% if series.source %}
+    <p class="muted">
+      Source: {% if series.source.url %}
+      <a href="{{ series.source.url }}"
+        >{{ series.source.name or series.source.url }}</a
+      >
+      {% else %} {{ series.source.name }} {% endif %} {% if
+      series.source.accessed %} · accessed {{ series.source.accessed }}{% endif
+      %}
+    </p>
+    {% if series.source.notes %}
+    <p class="muted">{{ series.source.notes }}</p>
+    {% endif %} {% endif %}
 
-<div class="actions" aria-label="Sort books">
-  <a
-    class="button {% if sort_order == 'series' %}active{% else %}secondary{% endif %}"
-    href="{{ url_for('series', series_id=series.id) }}?sort=series"
-    >Series order</a
-  >
-  <a
-    class="button {% if sort_order == 'title' %}active{% else %}secondary{% endif %}"
-    href="{{ url_for('series', series_id=series.id) }}?sort=title"
-    >Alphabetical</a
-  >
-</div>
+    <div class="actions" aria-label="Sort books">
+      <a
+        class="button {% if sort_order == 'series' %}active{% else %}secondary{% endif %}"
+        href="{{ url_for('series', series_id=series.id) }}?sort=series"
+        >Series order</a
+      >
+      <a
+        class="button {% if sort_order == 'title' %}active{% else %}secondary{% endif %}"
+        href="{{ url_for('series', series_id=series.id) }}?sort=title"
+        >Alphabetical</a
+      >
+    </div>
 
-<form
-  method="post"
-  action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}"
->
-  <p><button type="submit">Save all changes</button></p>
-  <ol class="book-list series-detail-layout">
-    {% for book in series.books %}
-    <li
-      class="book-row {% if book.wanted and not book.owned %}hunting{% endif %}"
+    <form
+      method="post"
+      action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}"
     >
-      <div class="book-number">{{ book.position }}</div>
-      {% if book.cover_url %}
-      <img
-        class="cover"
-        src="{{ book.cover_url }}"
-        alt="Cover of {{ book.title }}"
-        loading="lazy"
-        {%
-        if
-        book.remote_cover_url
-        and
-        book.remote_cover_url
-        !="book.cover_url"
-        %}
-        onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
-        {%
-        endif
-        %}
-      />
-      {% else %}
-      <div class="cover-placeholder" aria-label="No cover available">cover</div>
-      {% endif %}
-      <div class="book-main">
-        <div class="book-title">{{ book.title }}</div>
-        {% if book.author and book.author != series.author %}
-        <div class="book-meta">{{ book.author }}</div>
-        {% endif %}
-        <input type="hidden" name="book_key" value="{{ book['key'] }}" />
-        <div class="chip-row">
-          <label>
-            <input
-              class="chip-input"
-              type="checkbox"
-              name="wanted"
-              value="{{ book['key'] }}"
-              {%
-              if
-              book.wanted
-              %}checked{%
-              endif
-              %}
-            />
-            <span class="chip want">WANT</span>
-          </label>
-          <label>
-            <input
-              class="chip-input"
-              type="checkbox"
-              name="owned"
-              value="{{ book['key'] }}"
-              {%
-              if
-              book.owned
-              %}checked{%
-              endif
-              %}
-            />
-            <span class="chip own">OWN</span>
-          </label>
-          <label>
-            <input
-              class="chip-input"
-              type="checkbox"
-              name="read"
-              value="{{ book['key'] }}"
-              {%
-              if
-              book.read
-              %}checked{%
-              endif
-              %}
-            />
-            <span class="chip read">READ</span>
-          </label>
-        </div>
-      </div>
-    </li>
-    {% endfor %}
-  </ol>
-  <p><button type="submit">Save all changes</button></p>
-</form>
-<p class="attribution">
-  Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
-</p>
+      <p class="save-action-row">
+        <button class="save-action" type="submit">Save all changes</button>
+      </p>
+      <ol class="book-list series-detail-layout">
+        {% for book in series.books %}
+        <li
+          class="book-row {% if book.wanted and not book.owned %}hunting{% endif %}"
+        >
+          <div class="book-number">{{ book.position }}</div>
+          {% if book.cover_url %}
+          <img
+            class="cover"
+            src="{{ book.cover_url }}"
+            alt="Cover of {{ book.title }}"
+            loading="lazy"
+            {%
+            if
+            book.remote_cover_url
+            and
+            book.remote_cover_url
+            !="book.cover_url"
+            %}
+            onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
+            {%
+            endif
+            %}
+          />
+          {% else %}
+          <div class="cover-placeholder" aria-label="No cover available">
+            cover
+          </div>
+          {% endif %}
+          <div class="book-main">
+            <div class="book-title">{{ book.title }}</div>
+            {% if book.author and book.author != series.author %}
+            <div class="book-meta">{{ book.author }}</div>
+            {% endif %}
+            <input type="hidden" name="book_key" value="{{ book['key'] }}" />
+            <div class="chip-row">
+              <label>
+                <input
+                  class="chip-input"
+                  type="checkbox"
+                  name="wanted"
+                  value="{{ book['key'] }}"
+                  {%
+                  if
+                  book.wanted
+                  %}checked{%
+                  endif
+                  %}
+                />
+                <span class="chip want">WANT</span>
+              </label>
+              <label>
+                <input
+                  class="chip-input"
+                  type="checkbox"
+                  name="owned"
+                  value="{{ book['key'] }}"
+                  {%
+                  if
+                  book.owned
+                  %}checked{%
+                  endif
+                  %}
+                />
+                <span class="chip own">OWN</span>
+              </label>
+              <label>
+                <input
+                  class="chip-input"
+                  type="checkbox"
+                  name="read"
+                  value="{{ book['key'] }}"
+                  {%
+                  if
+                  book.read
+                  %}checked{%
+                  endif
+                  %}
+                />
+                <span class="chip read">READ</span>
+              </label>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="save-action-row">
+        <button class="save-action" type="submit">Save all changes</button>
+      </p>
+    </form>
+    <p class="attribution">
+      Some covers provided by
+      <a href="https://openlibrary.org/">Open Library</a>.
+    </p>
+  </div>
+</div>
 {% endblock content %}
