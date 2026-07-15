@@ -104,6 +104,23 @@ Use Open Library Covers API as the first cover source.
 - If no cover ID exists, show the striped placeholder.
 - Attribute in the UI: “Some covers provided by Open Library.”
 
+## Controls
+
+Distinguish visually between toggle controls and action buttons:
+
+- **Toggle group** (e.g. sort order): the selected option should be filled/dark, unselected options should be light/outline. The group should read as "pick one of these."
+- **Action button** (e.g. Save): should look heavier or more prominent than toggles. It commits a change rather than switching a view.
+
+These should not share the same visual treatment. If they all look the same, users cannot tell which controls change the view and which submit data.
+
+## Colors
+
+All colors in CSS should reference the CSS custom properties defined in `:root`. Do not use hardcoded hex or rgba values — they bypass the palette and drift silently when the palette changes.
+
+## Book row number alignment
+
+The row number should align to the first baseline of the book title, not float at an arbitrary vertical offset. Using a magic `padding-top` value to approximate center-alignment with the cover creates a number that doesn't visually anchor to anything in the row.
+
 ## Save feedback
 
 - After a successful save, show a brief confirmation (e.g. a banner or inline message). Silent reloads leave users unsure whether their changes were persisted.
