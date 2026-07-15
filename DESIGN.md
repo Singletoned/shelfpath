@@ -104,6 +104,20 @@ Use Open Library Covers API as the first cover source.
 - If no cover ID exists, show the striped placeholder.
 - Attribute in the UI: “Some covers provided by Open Library.”
 
+## Save feedback
+
+- After a successful save, show a brief confirmation (e.g. a banner or inline message). Silent reloads leave users unsure whether their changes were persisted.
+- When a user has toggled chips but not yet saved, indicate unsaved changes visibly — especially on the series detail page where the save button may be far from the edits. A sticky bar or similar device avoids silent data loss if the user navigates away.
+
+## Form elements
+
+Text inputs, textareas, and selects (used on the login, lists, and suggest pages) should be styled consistently with the rest of the app: matching border radius, padding, font, and color tokens. Browser-default form elements break the visual coherence.
+
+## Navigation
+
+- The current page should have an active state in the nav (the `nav a.active` CSS exists but is not applied). Without it, users have no visual cue where they are.
+- On mobile, the header should be as compact as possible. The critical use case is "under ten seconds on a phone" — every row of chrome above the content costs time. Account controls and secondary links should not push content below the fold.
+
 ## Implementation notes
 
 - `want`, `owned`, and `read` are independent booleans.
