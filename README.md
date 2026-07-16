@@ -47,7 +47,7 @@ Open <http://127.0.0.1:8731/>.
 
 This project hardcodes port `8731` in the local `just run` task and Supabase local redirect configuration to avoid common defaults such as `8000` and `8080`.
 
-For local Supabase-backed testing without touching live data or waiting for magic-link email, use the local Supabase sandbox:
+For local Supabase-backed testing without touching live data or waiting for magic-link email, use the local Supabase sandbox. Docker Desktop must be running:
 
 ```sh
 just local-supabase-start
@@ -55,13 +55,19 @@ just local-supabase-reset
 just local-run
 ```
 
-Stop the local Supabase stack with:
+`local-run` runs the Shelfpath app in a foreground Docker Compose service at <http://127.0.0.1:8731/>. It watches the checkout for changes and logs in immediately through `/login` using the local test user. Stop the app service with `Ctrl-C`, then clean it up with:
+
+```sh
+just local-run-stop
+```
+
+Stop the separate local Supabase stack with:
 
 ```sh
 just local-supabase-stop
 ```
 
-`local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. `local-run` runs Shelfpath against that local database and logs in immediately through `/login`.
+`local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. Compose passes the generated local keys into the app container while using `host.docker.internal` to reach that local Supabase stack.
 
 The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine. Run `just local-covers-fetch` while online to populate local Open Library cover IDs and cache cover images for offline design checks.
 
@@ -208,6 +214,7 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 
 ## Views
 
+- `/health` is an unauthenticated container health endpoint.
 - `/login` signs in with Supabase magic-link auth.
 - `/lists` chooses the active collecting list and lets owners share a list by email as an editor or viewer. If the email address does not have a Supabase account yet, Shelfpath records a pending invitation that is accepted automatically when that person signs in.
 - `/suggest` lets allow-listed logged-in users ask OpenAI to investigate a new ordered series, review the proposed books and provenance, then approve or reject the proposal.

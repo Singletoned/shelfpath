@@ -12,6 +12,16 @@ from booksequencer.config import Settings
 
 
 class AppTests(unittest.TestCase):
+    def test_health_endpoint_does_not_require_authentication(self):
+        settings = self._settings(Path("unused"), storage="supabase")
+        app = app_module.create_app(settings=settings, store=FailingStore())
+        client = TestClient(app)
+
+        response = client.get("/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok"})
+
     def test_series_and_shop_pages_reflect_saved_state(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)

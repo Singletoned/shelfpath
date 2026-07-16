@@ -25,7 +25,10 @@ local-supabase-stop:
     supabase stop
 
 local-run:
-    env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE uv run --env-file local-supabase.env uvicorn app:app --reload --host 127.0.0.1 --port 8731
+    docker compose --env-file local-supabase.env up --build
+
+local-run-stop:
+    docker compose --env-file local-supabase.env down
 
 local-covers-fetch:
     env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/fetch_openlibrary_covers.py

@@ -1,0 +1,11 @@
+.git
+.venv
+.ruff_cache
+.playwright-cli
+screenshots
+static/covers
+data
+.env
+local-supabase.env
+__pycache__
+*.pyc

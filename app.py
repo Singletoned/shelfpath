@@ -27,6 +27,10 @@ ACTIVE_LIST_SESSION_KEY = "active_list_id"
 templates = Jinja2Templates(directory=DEFAULT_TEMPLATE_DIR)
 
 
+async def health_get(request):
+    return JSONResponse({"status": "ok"})
+
+
 async def index_get(request):
     user = await _user_for_request(request)
     if _requires_auth(request.app, user):
@@ -356,6 +360,7 @@ def create_app(
     app = Starlette(
         debug=resolved_settings.debug,
         routes=[
+            Route("/health", health_get, methods=("GET",), name="health"),
             Route("/", index_get, methods=("GET",), name="index"),
             Route("/login", login_get, methods=("GET",), name="login"),
             Route("/auth/callback", auth_callback_get, methods=("GET",), name="auth_callback"),
