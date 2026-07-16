@@ -1,0 +1,21 @@
+{
+  "name": "Shelfpath",
+  "short_name": "Shelfpath",
+  "description": "Check ordered book series while browsing second-hand shops.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8EA",
+  "theme_color": "#E85D1F",
+  "icons": [
+    {
+      "src": "/static/icons/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

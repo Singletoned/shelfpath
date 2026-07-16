@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 COVER_SIZE = "M"
-COVER_ROOT = Path("static/covers")
+STATIC_ROOT = Path("static")
+COVER_ROOT = STATIC_ROOT / "covers"
 OPENLIBRARY_COVER_DIR = COVER_ROOT / "openlibrary"
 
 

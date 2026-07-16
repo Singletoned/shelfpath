@@ -13,7 +13,7 @@ from starlette.templating import Jinja2Templates
 from booksequencer.ai_series import OpenAISeriesInvestigator
 from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
-from booksequencer.covers import COVER_ROOT
+from booksequencer.covers import COVER_ROOT, STATIC_ROOT
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
@@ -406,6 +406,7 @@ def create_app(
                 name="book_state",
             ),
             Mount("/covers", StaticFiles(directory=COVER_ROOT, check_dir=False), name="covers"),
+            Mount("/static", StaticFiles(directory=STATIC_ROOT, check_dir=False), name="static"),
         ],
     )
     app.state.settings = resolved_settings
