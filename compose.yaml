@@ -6,9 +6,7 @@ services:
       - local-supabase.env
     environment:
       SHELFPATH_STORAGE: supabase
-      SUPABASE_URL: http://host.docker.internal:54321
-    extra_hosts:
-      - host.docker.internal:host-gateway
+      SUPABASE_URL: http://supabase_kong_shelfpath:8000
     healthcheck:
       test:
         - CMD
@@ -20,7 +18,14 @@ services:
       retries: 12
       start_period: 10s
     init: true
+    networks:
+      - supabase
     ports:
       - 127.0.0.1:8731:8731
     volumes:
       - .:/app
+
+networks:
+  supabase:
+    external: true
+    name: supabase_network_shelfpath

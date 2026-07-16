@@ -47,27 +47,27 @@ Open <http://127.0.0.1:8731/>.
 
 This project hardcodes port `8731` in the local `just run` task and Supabase local redirect configuration to avoid common defaults such as `8000` and `8080`.
 
-For local Supabase-backed testing without touching live data or waiting for magic-link email, use the local Supabase sandbox. Docker Desktop must be running:
+For local Supabase-backed testing without touching live data or waiting for magic-link email, Docker Desktop must be running. Start the entire local stack with one command:
 
 ```sh
-just local-supabase-start
-just local-supabase-reset
 just local-run
 ```
 
-`local-run` runs the Shelfpath app in a foreground Docker Compose service at <http://127.0.0.1:8731/>. It watches the checkout for changes and logs in immediately through `/login` using the local test user. Stop the app service with `Ctrl-C`, then clean it up with:
+This starts Supabase, joins the Shelfpath Compose service to Supabase’s Docker network, and runs the app in the foreground at <http://127.0.0.1:8731/>. It watches the checkout for changes and logs in immediately through `/login` using the local test user. `Ctrl-C` stops both the app and local Supabase stack.
+
+For a completely fresh local database with current migrations, catalogue data, and local test user, run instead:
+
+```sh
+just local-reset-and-run
+```
+
+The sandbox data persists between normal `just local-run` sessions. If a terminal is interrupted before cleanup, run:
 
 ```sh
 just local-run-stop
 ```
 
-Stop the separate local Supabase stack with:
-
-```sh
-just local-supabase-stop
-```
-
-`local-supabase-start` starts the Supabase CLI Docker stack and writes `local-supabase.env` with `SUPABASE_URL=http://127.0.0.1:54321`. `local-supabase-reset` applies migrations, creates a local test auth user, and imports catalogue data from `data/`. Compose passes the generated local keys into the app container while using `host.docker.internal` to reach that local Supabase stack.
+The Supabase CLI owns its official local service containers; the app Compose service shares their `supabase_network_shelfpath` network and talks to the local Kong API by container name. No app traffic goes to live Supabase.
 
 The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine. Run `just local-covers-fetch` while online to populate local Open Library cover IDs and cache cover images for offline design checks.
 
