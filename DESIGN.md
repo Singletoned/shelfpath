@@ -61,6 +61,7 @@ Reuse this layout wherever books appear:
 - OWN on: ink fill, cream text.
 - READ on: blue fill, cream text.
 - Off: transparent, ghost text, off-chip border.
+- Chips are pills, never circles: 1.5px border, 10.5–12.5px/800 text, and about 5px vertical by 7–9px horizontal padding. The visual chip row must remain lighter than a primary action button; an invisible label hit target may supply the 44px touch area.
 
 ## Screens
 
@@ -75,7 +76,7 @@ Reuse this layout wherever books appear:
 ### Series detail
 
 - Ink header with back link, title, author/order metadata, and filter pills.
-- Filter pills: All, Wanted, Owned.
+- Filter pills: All, Wanted, Owned. Unselected pills are transparent with a cream outline/text; selection uses cream fill with ink text. Wanted uses orange with cream text only when selected as its semantic accent.
 - Rows use the core row anatomy above.
 - Sort controls remain visible and ordinary.
 - Status chips persist automatically and show brief save feedback; no separate Save action is shown.
@@ -90,8 +91,10 @@ Reuse this layout wherever books appear:
 
 ### Desktop
 
-- Orange top nav with Shelf, Shop check, Import/Suggest, account controls.
+- Orange top nav with Shelf, Suggest series, a “Check a book…” search field, and an account avatar. Each destination appears once: Shop check is entered by that field on desktop and by the mobile tab on mobile; never add a second Shop check link.
+- The account control is an ink avatar circle with a cream initial. Reveal email and sign-out in its menu; never show the raw email in chrome.
 - Use a two-column layout when space allows: series sidebar + main content.
+- Sidebar anatomy: active series has ink fill, cream text, and an orange wanted-count badge. Inactive series has ink text and a neutral badge. Replace the badge with ✓ when every book is owned.
 - Book rows can become two-column cards but must keep the same anatomy and semantics.
 
 ## Covers
@@ -119,7 +122,7 @@ All colors in CSS should reference the CSS custom properties defined in `:root`.
 
 ## Book row number alignment
 
-The row number should align to the first baseline of the book title, not float at an arbitrary vertical offset. Using a magic `padding-top` value to approximate center-alignment with the cover creates a number that doesn't visually anchor to anything in the row.
+The row number should align to the first baseline of the book title, not float at an arbitrary vertical offset. Use baseline alignment rather than a magic `padding-top` value that approximates cover-centering.
 
 ## Save feedback
 
@@ -132,8 +135,13 @@ Text inputs, textareas, and selects (used on the login, lists, and suggest pages
 
 ## Navigation
 
-- The current page should have an active state in the nav (the `nav a.active` CSS exists but is not applied). Without it, users have no visual cue where they are.
+- The current page must have an active state in the nav. Series detail belongs to Shelf.
 - On mobile, the header should be as compact as possible. The critical use case is "under ten seconds on a phone" — every row of chrome above the content costs time. Account controls and secondary links should not push content below the fold.
+- Screen headers contain at most a wordmark/back link, title, one metadata line, and one pill row. Remove empty vertical space rather than filling it.
+
+## Metadata hygiene
+
+Book metadata is author and/or year only. Strip publisher blurbs, biographies, and subtitle marketing during catalogue import; do not try to conceal dirty metadata at render time.
 
 ## Implementation notes
 

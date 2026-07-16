@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import unittest
 
 from playwright.sync_api import expect, sync_playwright
@@ -19,6 +20,22 @@ class LocalStackE2ETests(unittest.TestCase):
                 self.assertIsNotNone(response)
                 self.assertEqual(response.status, 200)
                 self.assertEqual(page.text_content("body"), '{"status":"ok"}')
+            finally:
+                browser.close()
+
+    def test_owning_a_book_removes_its_hunting_tint_immediately(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(f"{BASE_URL}/login?next=/series/discworld")
+
+                first_row = page.locator(".book-row").first
+                expect(first_row).to_have_class(re.compile(r".*\bhunting\b.*"))
+                first_row.locator('.chip-input[data-status="owned"]').check(force=True)
+
+                expect(first_row).not_to_have_class(re.compile(r".*\bhunting\b.*"))
+                expect(first_row.locator("[data-save-status]")).to_have_text("Saved")
             finally:
                 browser.close()
 

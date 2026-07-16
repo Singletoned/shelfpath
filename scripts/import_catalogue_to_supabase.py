@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 
+from booksequencer.catalogue import sanitize_book_author
 from booksequencer.library import SERIES_DIR_NAME, _load_series_files
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -51,7 +52,7 @@ def _upsert_books(client: httpx.Client, supabase_url: str, series: list[dict[str
                     "book_id": book["id"],
                     "title": book["title"],
                     "position": book["position"],
-                    "author": book.get("author"),
+                    "author": sanitize_book_author(book.get("author")),
                     "openlibrary_cover_id": book.get("openlibrary_cover_id"),
                 }
             )

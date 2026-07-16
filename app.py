@@ -459,7 +459,25 @@ def _safe_next(value) -> str:
 
 
 def _context(request, **values):
-    return {"request": request, "current_user": current_user(request), **values}
+    return {
+        "request": request,
+        "current_user": current_user(request),
+        "nav_section": _nav_section(request),
+        **values,
+    }
+
+
+def _nav_section(request) -> str:
+    path = request.url.path
+    if path == "/" or path.startswith("/series/"):
+        return "shelf"
+    if path == "/shop":
+        return "shop"
+    if path == "/lists":
+        return "lists"
+    if path == "/suggest":
+        return "suggest"
+    return ""
 
 
 def _requires_auth(app: Starlette, user) -> bool:

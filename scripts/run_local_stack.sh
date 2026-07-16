@@ -5,7 +5,7 @@ PROJECT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$PROJECT_DIR"
 
 cleanup() {
-	docker compose --env-file local-supabase.env down 2>/dev/null || true
+	docker compose --env-file local-supabase.env --profile e2e down 2>/dev/null || true
 	supabase stop 2>/dev/null || true
 }
 

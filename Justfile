@@ -34,7 +34,7 @@ local-e2e:
     ./scripts/run_local_stack.sh --reset --e2e
 
 local-run-stop:
-    docker compose --env-file local-supabase.env down
+    docker compose --env-file local-supabase.env --profile e2e down
     supabase stop
 
 local-covers-fetch:

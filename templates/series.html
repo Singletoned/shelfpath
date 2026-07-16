@@ -35,8 +35,13 @@ endblock title %} {% block content %}
         <a
           aria-current="{% if sidebar_series.id == series.id %}page{% endif %}"
           href="{{ url_for('series', series_id=sidebar_series.id) }}"
-          >{{ sidebar_series.title }}</a
         >
+          <span>{{ sidebar_series.title }}</span>
+          <span class="series-sidebar-count">
+            {% if sidebar_series.owned_count == sidebar_series.book_count %}✓{%
+            else %}{{ sidebar_series.wanted_count }}{% endif %}
+          </span>
+        </a>
       </li>
       {% endfor %}
     </ul>
