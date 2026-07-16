@@ -188,7 +188,7 @@ books:
 
 `source` records provenance for future review. It is optional but recommended for real series data.
 
-`read: true` and `owned: false` is valid: you may have read a book and given it away. `wanted` is also independent; missing/hunting books are derived from `wanted: true` and `owned: false`.
+`read: true` and `owned: false` is valid: you may have read a book and given it away. `wanted` is also independent; missing/hunting books are derived from `wanted: true` and `owned: false`. In the UI, newly checking OWN or READ clears WANT as a helpful default; you can turn WANT back on deliberately.
 
 ## Deployment
 
@@ -213,8 +213,8 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 - `/suggest` lets allow-listed logged-in users ask OpenAI to investigate a new ordered series, review the proposed books and provenance, then approve or reject the proposal.
 - Book rows show cached Open Library covers when `books.openlibrary_cover_id` is populated and the image has been downloaded to `static/covers/`, fall back to Open Library when uncached, and show a striped placeholder otherwise.
 - `/` lists series and progress.
-- `/series/{series_id}` shows a series in order with wanted/owned/read controls.
-- `/shop` shows wanted books that are not currently owned, grouped by series.
+- `/series/{series_id}` shows a series in order with working All, Wanted, and Owned filters plus wanted/owned/read controls.
+- `/shop` shows wanted books that are not currently owned when empty. Searching a title returns fuzzy all-series matches with a verdict-first Wanted · buy it or Owned · skip card.
 
 ## Manual check
 
@@ -222,11 +222,13 @@ After changing the app, check:
 
 1. The homepage loads.
 2. A series page loads.
-3. Owned/read checkboxes save and persist after refresh.
-4. `/shop` omits owned books.
-5. Read-but-not-owned books still appear in `/shop`.
-6. `/lists` shows the current list and allows owners to share Supabase-backed lists.
-7. `/suggest` shows a friendly access message for users who are not allow-listed.
-8. Allow-listed users can generate, reject, and approve AI-assisted series proposals.
-9. Series and shop rows render Open Library covers when available and placeholders otherwise.
-10. Broken YAML produces a clear traceback in development.
+3. Newly checking OWN or READ clears WANT; explicitly re-enabling WANT remains possible.
+4. Series All, Wanted, and Owned filters show the intended rows.
+5. `/shop` omits owned books when browsing, and a searched owned title returns an Owned · skip verdict.
+6. A searched wanted title returns a Wanted · buy it verdict.
+7. Read-but-not-owned books still appear in `/shop`.
+8. `/lists` shows the current list and allows owners to share Supabase-backed lists.
+9. `/suggest` shows a friendly access message for users who are not allow-listed.
+10. Allow-listed users can generate, reject, and approve AI-assisted series proposals.
+11. Series and shop rows render Open Library covers when available and placeholders otherwise.
+12. Broken YAML produces a clear traceback in development.

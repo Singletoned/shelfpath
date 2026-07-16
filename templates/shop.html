@@ -1,14 +1,138 @@
-{% extends "base.html" %} {% block title %}Shop check · Shelfpath{% endblock
+{% extends "base.html" %} {% macro state_controls(book) %}
+<form
+  class="chip-row"
+  data-status-chips
+  method="post"
+  action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
+>
+  <label>
+    <input
+      class="chip-input"
+      data-status="wanted"
+      type="checkbox"
+      name="wanted"
+      {%
+      if
+      book.wanted
+      %}checked{%
+      endif
+      %}
+    />
+    <span class="chip want">WANT</span>
+  </label>
+  <label>
+    <input
+      class="chip-input"
+      data-status="owned"
+      type="checkbox"
+      name="owned"
+      {%
+      if
+      book.owned
+      %}checked{%
+      endif
+      %}
+    />
+    <span class="chip own">OWN</span>
+  </label>
+  <label>
+    <input
+      class="chip-input"
+      data-status="read"
+      type="checkbox"
+      name="read"
+      {%
+      if
+      book.read
+      %}checked{%
+      endif
+      %}
+    />
+    <span class="chip read">READ</span>
+  </label>
+  <button type="submit">Save</button>
+</form>
+{% endmacro %} {% macro cover(book) %} {% if book.cover_url %}
+<img
+  class="cover"
+  src="{{ book.cover_url }}"
+  alt="Cover of {{ book.title }}"
+  loading="lazy"
+  onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
+/>
+{% else %}
+<div class="cover-placeholder" aria-label="No cover available">cover</div>
+{% endif %} {% endmacro %} {% block title %}Shop check · Shelfpath{% endblock
 title %} {% block content %}
 <section class="shop-page">
   <h2>Shop check</h2>
-  <input class="shop-search" type="search" placeholder="Type a title…" />
-  <p class="faint">
-    Wanted books across all your series. Fuzzy title search is coming next.
-  </p>
+  <form class="shop-search-form" method="get" action="{{ url_for('shop') }}">
+    <label class="visually-hidden" for="shop-query">Book title</label>
+    <input
+      autofocus
+      class="shop-search"
+      id="shop-query"
+      name="q"
+      type="search"
+      value="{{ search_query }}"
+      placeholder="Type a title…"
+    />
+    <button type="submit">Check</button>
+  </form>
+  <p class="faint">Matches across all your series · fuzzy titles OK.</p>
 
-  {% for series in library.series %} {% set wanted_books = series.books |
-  selectattr('wanted') | rejectattr('owned') | list %} {% if wanted_books %}
+  {% if search_query %} {% if shop_matches %} {% set top_match = shop_matches[0]
+  %}
+  <article class="shop-verdict {{ top_match.verdict }}">
+    <p class="overline">
+      {% if top_match.verdict == 'wanted' %}Wanted · buy it{% elif
+      top_match.verdict == 'owned' %}Owned · skip{% else %}Not on your want
+      list{% endif %}
+    </p>
+    <div class="shop-verdict-body">
+      {{ cover(top_match.book) }}
+      <div>
+        <p class="shop-position">
+          #{{ top_match.book.position }} of {{ top_match.series.book_count }}
+        </p>
+        <h3>{{ top_match.book.title }}</h3>
+        <p class="book-meta">
+          {{ top_match.series.title }}{% if top_match.book.author and
+          top_match.book.author != top_match.series.author %} · {{
+          top_match.book.author }}{% endif %}
+        </p>
+        {{ state_controls(top_match.book) }}
+      </div>
+    </div>
+  </article>
+
+  {% if shop_matches|length > 1 %}
+  <section class="shop-secondary-results" aria-label="Other matches">
+    <h3>Other matches</h3>
+    {% for match in shop_matches[1:] %}
+    <article class="shop-book">
+      {{ cover(match.book) }}
+      <div>
+        <div class="book-title" style="color: var(--cream)">
+          #{{ match.book.position }} {{ match.book.title }}
+        </div>
+        <div class="book-meta">
+          {{ match.series.title }}{% if match.book.author and match.book.author
+          != match.series.author %} · {{ match.book.author }}{% endif %}
+        </div>
+        {{ state_controls(match.book) }}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %} {% else %}
+  <p class="shop-empty">
+    No close matches for “{{ search_query }}”. Try a different title or fewer
+    words.
+  </p>
+  {% endif %} {% else %} {% for series in library.series %} {% set wanted_books
+  = series.books | selectattr('wanted') | rejectattr('owned') | list %} {% if
+  wanted_books %}
   <section class="shop-section">
     <h3>
       <a href="{{ url_for('series', series_id=series.id) }}"
@@ -18,28 +142,8 @@ title %} {% block content %}
     {% if series.author %}
     <p class="faint">{{ series.author }}</p>
     {% endif %} {% for book in wanted_books %}
-    <div class="shop-book">
-      {% if book.cover_url %}
-      <img
-        class="cover"
-        src="{{ book.cover_url }}"
-        alt="Cover of {{ book.title }}"
-        loading="lazy"
-        {%
-        if
-        book.remote_cover_url
-        and
-        book.remote_cover_url
-        !="book.cover_url"
-        %}
-        onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
-        {%
-        endif
-        %}
-      />
-      {% else %}
-      <div class="cover-placeholder" aria-label="No cover available">cover</div>
-      {% endif %}
+    <article class="shop-book">
+      {{ cover(book) }}
       <div>
         <div class="book-title" style="color: var(--cream)">
           #{{ book.position }} {{ book.title }}
@@ -48,40 +152,12 @@ title %} {% block content %}
           {{ series.title }}{% if book.author and book.author != series.author
           %} · {{ book.author }}{% endif %}
         </div>
-        <form
-          class="chip-row"
-          method="post"
-          action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
-        >
-          <label>
-            <input class="chip-input" type="checkbox" name="wanted" checked />
-            <span class="chip want">WANT</span>
-          </label>
-          <label>
-            <input class="chip-input" type="checkbox" name="owned" />
-            <span class="chip own">OWN</span>
-          </label>
-          <label>
-            <input
-              class="chip-input"
-              type="checkbox"
-              name="read"
-              {%
-              if
-              book.read
-              %}checked{%
-              endif
-              %}
-            />
-            <span class="chip read">READ</span>
-          </label>
-          <button type="submit">Save</button>
-        </form>
+        {{ state_controls(book) }}
       </div>
-    </div>
+    </article>
     {% endfor %}
   </section>
-  {% endif %} {% endfor %}
+  {% endif %} {% endfor %} {% endif %}
   <p class="attribution">
     Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
   </p>

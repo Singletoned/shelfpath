@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import re
+from difflib import SequenceMatcher
+
 from starlette.applications import Starlette
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
@@ -14,6 +17,8 @@ from booksequencer.covers import COVER_ROOT
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
+MAX_SHOP_MATCHES = 12
+SEARCH_STOP_WORDS = frozenset({"a", "an", "and", "of", "the", "to"})
 
 STORAGE_SUPABASE = "supabase"
 
@@ -37,13 +42,22 @@ async def series_get(request):
         return redirect_to_login(request)
     series_id = request.path_params["series_id"]
     sort_order = request.query_params.get("sort", "series")
+    filter_mode = request.query_params.get("filter", "all")
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
-    series = _sorted_series(_find_series(library, series_id), sort_order)
+    series = _filtered_series(
+        _sorted_series(_find_series(library, series_id), sort_order), filter_mode
+    )
     return templates.TemplateResponse(
         request,
         "series.html",
-        _context(request, library=library, series=series, sort_order=sort_order),
+        _context(
+            request,
+            library=library,
+            series=series,
+            sort_order=sort_order,
+            filter_mode=filter_mode,
+        ),
     )
 
 
@@ -53,7 +67,18 @@ async def shop_get(request):
         return redirect_to_login(request)
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
-    return templates.TemplateResponse(request, "shop.html", _context(request, library=library))
+    search_query = _clean_search_query(request.query_params.get("q", ""))
+    shop_matches = _shop_matches(library, search_query) if search_query else []
+    return templates.TemplateResponse(
+        request,
+        "shop.html",
+        _context(
+            request,
+            library=library,
+            search_query=search_query,
+            shop_matches=shop_matches,
+        ),
+    )
 
 
 async def lists_get(request):
@@ -286,9 +311,15 @@ async def series_state_post(request):
         _active_list_id(request),
     )
     redirect_url = request.url_for("series", series_id=series_id)
+    query_params = []
     sort_order = request.query_params.get("sort")
     if sort_order:
-        redirect_url = f"{redirect_url}?sort={sort_order}"
+        query_params.append(f"sort={sort_order}")
+    filter_mode = request.query_params.get("filter")
+    if filter_mode:
+        query_params.append(f"filter={filter_mode}")
+    if query_params:
+        redirect_url = f"{redirect_url}?{'&'.join(query_params)}"
     return RedirectResponse(redirect_url, status_code=HTTP_SEE_OTHER)
 
 
@@ -441,6 +472,79 @@ def _sorted_series(series, sort_order):
     if sort_order == "title":
         books.sort(key=lambda book: _sort_title(book["title"]))
     return {**series, "books": books}
+
+
+def _filtered_series(series, filter_mode):
+    if filter_mode == "all":
+        return series
+    if filter_mode == "wanted":
+        books = [book for book in series["books"] if book["wanted"] and not book["owned"]]
+    elif filter_mode == "owned":
+        books = [book for book in series["books"] if book["owned"]]
+    else:
+        raise ValueError(f"Unknown series filter: {filter_mode}")
+    return {**series, "books": books}
+
+
+def _clean_search_query(value):
+    if not isinstance(value, str):
+        return ""
+    return " ".join(value.split())
+
+
+def _shop_matches(library, search_query):
+    matches = []
+    for series in library["series"]:
+        for book in series["books"]:
+            score = _match_score(search_query, book, series)
+            if score is None:
+                continue
+            matches.append(
+                {
+                    "book": book,
+                    "series": series,
+                    "score": score,
+                    "verdict": _shop_verdict(book),
+                }
+            )
+    matches.sort(key=lambda match: (-match["score"], match["book"]["position"]))
+    return matches[:MAX_SHOP_MATCHES]
+
+
+def _match_score(search_query, book, series):
+    query = _search_terms(search_query)
+    title = _search_terms(book["title"])
+    if not query or not title:
+        return None
+    if query in title:
+        return 1.0
+    query_tokens = set(query.split())
+    candidate = " ".join(
+        value
+        for value in (book["title"], book.get("author"), series["title"], series.get("author"))
+        if value
+    )
+    candidate_tokens = set(_search_terms(candidate).split())
+    overlap = len(query_tokens & candidate_tokens) / len(query_tokens)
+    similarity = SequenceMatcher(None, query, title).ratio()
+    score = overlap * 0.75 + similarity * 0.25
+    if score < 0.45:
+        return None
+    return score
+
+
+def _search_terms(value):
+    return " ".join(
+        term for term in re.findall(r"[\w]+", value.casefold()) if term not in SEARCH_STOP_WORDS
+    )
+
+
+def _shop_verdict(book):
+    if book["owned"]:
+        return "owned"
+    if book["wanted"]:
+        return "wanted"
+    return "not-wanted"
 
 
 def _sort_title(title):

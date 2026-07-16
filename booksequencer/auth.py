@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from typing import Any
+from urllib.parse import urlencode
 
 import httpx
 from starlette.requests import Request
@@ -27,7 +28,12 @@ def require_user(request: Request) -> dict[str, Any]:
 
 
 def redirect_to_login(request: Request) -> RedirectResponse:
-    return RedirectResponse(f"/login?next={request.url.path}", status_code=HTTP_SEE_OTHER)
+    next_url = request.url.path
+    if request.url.query:
+        next_url = f"{next_url}?{request.url.query}"
+    return RedirectResponse(
+        f"/login?{urlencode({'next': next_url}, safe='/')}", status_code=HTTP_SEE_OTHER
+    )
 
 
 async def fresh_user(

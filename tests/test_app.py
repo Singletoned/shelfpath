@@ -43,6 +43,19 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 303)
         self.assertEqual(response.headers["location"], "/login?next=/")
 
+    def test_login_redirect_preserves_requested_query(self):
+        settings = self._settings(Path("unused"), storage="supabase")
+        app = app_module.create_app(settings=settings, store=FailingStore())
+        client = TestClient(app)
+
+        response = client.get("/shop?q=The+Colour+of+Magic", follow_redirects=False)
+
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(
+            response.headers["location"],
+            "/login?next=/shop%3Fq%3DThe%2BColour%2Bof%2BMagic",
+        )
+
     def test_local_auth_mode_sets_session_without_magic_link(self):
         settings = self._settings(Path("unused"), storage="supabase").__class__(
             **{
@@ -74,6 +87,38 @@ class AppTests(unittest.TestCase):
             self.assertLess(response.text.index("Aardvark Book"), response.text.index("First Book"))
             self.assertIn("Alphabetical", response.text)
             self.assertIn("Series order", response.text)
+
+    def test_series_filters_wanted_and_owned_books(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            wanted_response = client.get("/series/example-series?filter=wanted")
+            self.assertEqual(wanted_response.status_code, 200)
+            self.assertIn("Second Book", wanted_response.text)
+            self.assertNotIn("First Book</div>", wanted_response.text)
+
+            owned_response = client.get("/series/example-series?filter=owned")
+            self.assertEqual(owned_response.status_code, 200)
+            self.assertIn("First Book", owned_response.text)
+            self.assertNotIn("Second Book</div>", owned_response.text)
+
+    def test_shop_search_shows_wanted_and_owned_verdicts(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            wanted_response = client.get("/shop?q=Second+Book")
+            self.assertEqual(wanted_response.status_code, 200)
+            self.assertIn("Wanted · buy it", wanted_response.text)
+            self.assertIn("Second Book", wanted_response.text)
+
+            owned_response = client.get("/shop?q=First+Book")
+            self.assertEqual(owned_response.status_code, 200)
+            self.assertIn("Owned · skip", owned_response.text)
+            self.assertIn("First Book", owned_response.text)
 
     def test_series_bulk_save_preserves_sort_order(self):
         with tempfile.TemporaryDirectory() as temp_dir:

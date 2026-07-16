@@ -7,11 +7,23 @@ endblock title %} {% block content %}
     {% if series.author %}{{ series.author }}{% endif %}{% if series.order %}{%
     if series.author %} · {% endif %}{{ series.order }}{% endif %}
   </p>
-  <div class="pill-row">
-    <span class="pill all">All {{ series.book_count }}</span>
-    <span class="pill want">Wanted {{ series.wanted_count }}</span>
-    <span class="pill own">Owned {{ series.owned_count }}</span>
-  </div>
+  <nav class="pill-row" aria-label="Filter books">
+    <a
+      class="pill filter-pill all {% if filter_mode == 'all' %}filter-active{% endif %}"
+      href="{{ url_for('series', series_id=series.id) }}?sort={{ sort_order }}&filter=all"
+      >All {{ series.book_count }}</a
+    >
+    <a
+      class="pill filter-pill want {% if filter_mode == 'wanted' %}filter-active{% endif %}"
+      href="{{ url_for('series', series_id=series.id) }}?sort={{ sort_order }}&filter=wanted"
+      >Wanted {{ series.wanted_count }}</a
+    >
+    <a
+      class="pill filter-pill own {% if filter_mode == 'owned' %}filter-active{% endif %}"
+      href="{{ url_for('series', series_id=series.id) }}?sort={{ sort_order }}&filter=owned"
+      >Owned {{ series.owned_count }}</a
+    >
+  </nav>
 </section>
 
 <div class="series-content-layout">
@@ -31,35 +43,39 @@ endblock title %} {% block content %}
   </aside>
   <div class="series-content">
     {% if series.source %}
-    <p class="muted">
-      Source: {% if series.source.url %}
-      <a href="{{ series.source.url }}"
-        >{{ series.source.name or series.source.url }}</a
-      >
-      {% else %} {{ series.source.name }} {% endif %} {% if
-      series.source.accessed %} · accessed {{ series.source.accessed }}{% endif
-      %}
-    </p>
-    {% if series.source.notes %}
-    <p class="muted">{{ series.source.notes }}</p>
-    {% endif %} {% endif %}
+    <details class="series-provenance">
+      <summary>Source and notes</summary>
+      <p class="muted">
+        Source: {% if series.source.url %}
+        <a href="{{ series.source.url }}"
+          >{{ series.source.name or series.source.url }}</a
+        >
+        {% else %} {{ series.source.name }} {% endif %} {% if
+        series.source.accessed %} · accessed {{ series.source.accessed }}{%
+        endif %}
+      </p>
+      {% if series.source.notes %}
+      <p class="muted">{{ series.source.notes }}</p>
+      {% endif %}
+    </details>
+    {% endif %}
 
     <div class="actions" aria-label="Sort books">
       <a
         class="button {% if sort_order == 'series' %}active{% else %}secondary{% endif %}"
-        href="{{ url_for('series', series_id=series.id) }}?sort=series"
+        href="{{ url_for('series', series_id=series.id) }}?sort=series&filter={{ filter_mode }}"
         >Series order</a
       >
       <a
         class="button {% if sort_order == 'title' %}active{% else %}secondary{% endif %}"
-        href="{{ url_for('series', series_id=series.id) }}?sort=title"
+        href="{{ url_for('series', series_id=series.id) }}?sort=title&filter={{ filter_mode }}"
         >Alphabetical</a
       >
     </div>
 
     <form
       method="post"
-      action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}"
+      action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}&filter={{ filter_mode }}"
     >
       <p class="save-action-row">
         <button class="save-action" type="submit">Save all changes</button>
@@ -99,10 +115,11 @@ endblock title %} {% block content %}
             <div class="book-meta">{{ book.author }}</div>
             {% endif %}
             <input type="hidden" name="book_key" value="{{ book['key'] }}" />
-            <div class="chip-row">
+            <div class="chip-row" data-status-chips>
               <label>
                 <input
                   class="chip-input"
+                  data-status="wanted"
                   type="checkbox"
                   name="wanted"
                   value="{{ book['key'] }}"
@@ -118,6 +135,7 @@ endblock title %} {% block content %}
               <label>
                 <input
                   class="chip-input"
+                  data-status="owned"
                   type="checkbox"
                   name="owned"
                   value="{{ book['key'] }}"
@@ -133,6 +151,7 @@ endblock title %} {% block content %}
               <label>
                 <input
                   class="chip-input"
+                  data-status="read"
                   type="checkbox"
                   name="read"
                   value="{{ book['key'] }}"
