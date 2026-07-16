@@ -19,13 +19,38 @@ services:
       start_period: 10s
     init: true
     networks:
+      - app
       - supabase
     ports:
       - 127.0.0.1:8731:8731
     volumes:
       - .:/app
 
+  e2e:
+    build:
+      context: e2e
+    command:
+      - python
+      - -m
+      - unittest
+      - discover
+      - -s
+      - e2e
+    depends_on:
+      shelfpath:
+        condition: service_healthy
+    environment:
+      SHELFPATH_E2E_BASE_URL: http://shelfpath:8731
+    networks:
+      - app
+    profiles:
+      - e2e
+    volumes:
+      - .:/workspace:ro
+    working_dir: /workspace
+
 networks:
+  app:
   supabase:
     external: true
     name: supabase_network_shelfpath

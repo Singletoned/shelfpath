@@ -61,7 +61,15 @@ For a completely fresh local database with current migrations, catalogue data, a
 just local-reset-and-run
 ```
 
-The sandbox data persists between normal `just local-run` sessions. If a terminal is interrupted before cleanup, run:
+The sandbox data persists between normal `just local-run` sessions. Run Docker-backed browser end-to-end tests against a clean local Supabase database with:
+
+```sh
+just local-e2e
+```
+
+This starts the local stack, applies migrations, imports the catalogue, allows the local test user to access AI suggestions, runs the Playwright test container, and tears the stack down.
+
+If a terminal is interrupted before cleanup, run:
 
 ```sh
 just local-run-stop

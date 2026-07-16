@@ -22,14 +22,18 @@ run_with_local_env() {
 		uv run --env-file local-supabase.env "$@"
 }
 
-if [ "${1:-}" = "--reset" ]; then
-	reset_catalogue=true
-elif [ "$#" -eq 0 ]; then
-	reset_catalogue=false
-else
-	echo "Usage: $0 [--reset]" >&2
-	exit 2
-fi
+reset_catalogue=false
+run_e2e=false
+for argument in "$@"; do
+	case "$argument" in
+	--reset) reset_catalogue=true ;;
+	--e2e) run_e2e=true ;;
+	*)
+		echo "Usage: $0 [--reset] [--e2e]" >&2
+		exit 2
+		;;
+	esac
+done
 
 trap cleanup EXIT INT TERM
 
@@ -47,4 +51,10 @@ if [ "$reset_catalogue" = true ]; then
 	run_with_local_env python scripts/import_catalogue_to_supabase.py
 fi
 
-docker compose --env-file local-supabase.env up --build
+if [ "$run_e2e" = true ]; then
+	run_with_local_env python scripts/allow_ai_suggestion_user.py local@shelfpath.test
+	docker compose --env-file local-supabase.env --profile e2e up --build \
+		--abort-on-container-exit --exit-code-from e2e e2e
+else
+	docker compose --env-file local-supabase.env up --build
+fi

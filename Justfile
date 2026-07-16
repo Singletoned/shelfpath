@@ -30,6 +30,9 @@ local-run:
 local-reset-and-run:
     ./scripts/run_local_stack.sh --reset
 
+local-e2e:
+    ./scripts/run_local_stack.sh --reset --e2e
+
 local-run-stop:
     docker compose --env-file local-supabase.env down
     supabase stop

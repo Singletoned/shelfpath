@@ -1,0 +1,40 @@
+from __future__ import annotations
+
+import os
+import unittest
+
+from playwright.sync_api import expect, sync_playwright
+
+BASE_URL = os.environ.get("SHELFPATH_E2E_BASE_URL", "http://shelfpath:8731")
+
+
+class LocalStackE2ETests(unittest.TestCase):
+    def test_health_endpoint_is_available(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                response = page.goto(f"{BASE_URL}/health")
+
+                self.assertIsNotNone(response)
+                self.assertEqual(response.status, 200)
+                self.assertEqual(page.text_content("body"), '{"status":"ok"}')
+            finally:
+                browser.close()
+
+    def test_local_login_can_open_allowed_suggestions_page(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(f"{BASE_URL}/login?next=/suggest")
+
+                expect(page).to_have_url(f"{BASE_URL}/suggest")
+                expect(page.get_by_role("heading", name="Suggest a series")).to_be_visible()
+                expect(page.get_by_role("button", name="Investigate series")).to_be_visible()
+            finally:
+                browser.close()
+
+
+if __name__ == "__main__":
+    unittest.main()
