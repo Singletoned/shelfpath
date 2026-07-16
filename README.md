@@ -229,7 +229,7 @@ After changing the app, check:
 
 1. The homepage loads.
 2. A series page loads.
-3. Newly checking OWN or READ clears WANT; explicitly re-enabling WANT remains possible.
+3. Status-chip changes save automatically; newly checking OWN or READ clears WANT, and explicitly re-enabling WANT remains possible.
 4. Series All, Wanted, and Owned filters show the intended rows.
 5. `/shop` omits owned books when browsing, and a searched owned title returns an Owned · skip verdict.
 6. A searched wanted title returns a Wanted · buy it verdict.

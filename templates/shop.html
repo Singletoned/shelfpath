@@ -1,6 +1,7 @@
 {% extends "base.html" %} {% macro state_controls(book) %}
 <form
   class="chip-row"
+  data-book-state-url="{{ url_for('book_state', book_key=book['key']) }}"
   data-status-chips
   method="post"
   action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
@@ -50,7 +51,7 @@
     />
     <span class="chip read">READ</span>
   </label>
-  <button type="submit">Save</button>
+  <span class="save-status" aria-live="polite" data-save-status></span>
 </form>
 {% endmacro %} {% macro cover(book) %} {% if book.cover_url %}
 <img

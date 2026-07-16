@@ -78,7 +78,7 @@ Reuse this layout wherever books appear:
 - Filter pills: All, Wanted, Owned.
 - Rows use the core row anatomy above.
 - Sort controls remain visible and ordinary.
-- Save controls should be easy to find at both top and bottom until optimistic chip persistence exists.
+- Status chips persist automatically and show brief save feedback; no separate Save action is shown.
 
 ### Shop check
 
@@ -123,8 +123,8 @@ The row number should align to the first baseline of the book title, not float a
 
 ## Save feedback
 
-- After a successful save, show a brief confirmation (e.g. a banner or inline message). Silent reloads leave users unsure whether their changes were persisted.
-- When a user has toggled chips but not yet saved, indicate unsaved changes visibly — especially on the series detail page where the save button may be far from the edits. A sticky bar or similar device avoids silent data loss if the user navigates away.
+- Status chips save immediately. Show a brief inline saving/saved confirmation and restore the previous state with an actionable error if persistence fails.
+- Disable a row’s chips while its update is in flight so rapid taps cannot overwrite a newer state with an older request.
 
 ## Form elements
 

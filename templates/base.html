@@ -328,16 +328,6 @@
         min-height: 2.35rem;
       }
 
-      .save-action {
-        box-shadow: 0 2px 0 var(--strong-line);
-        min-height: 2.9rem;
-        padding-inline: 1rem;
-      }
-
-      .save-action-row {
-        margin: 0.9rem 0;
-      }
-
       .book-list {
         gap: 0;
       }
@@ -465,6 +455,22 @@
         background: var(--blue);
         border-color: var(--blue);
         color: var(--cream);
+      }
+
+      .chip-row[aria-busy="true"] .chip {
+        cursor: progress;
+        opacity: 0.7;
+      }
+
+      .save-status {
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 700;
+        min-height: 1em;
+      }
+
+      .save-status[data-state="error"] {
+        color: var(--orange);
       }
 
       .shop-page {
@@ -868,23 +874,88 @@
     </nav>
     {% endif %}
     <script>
+      const statusSnapshots = new WeakMap();
+
+      function statusInputs(chipRow) {
+        return [...chipRow.querySelectorAll(".chip-input[data-status]")];
+      }
+
+      function snapshotStatus(chipRow) {
+        return Object.fromEntries(
+          statusInputs(chipRow).map((input) => [
+            input.dataset.status,
+            input.checked,
+          ]),
+        );
+      }
+
+      function restoreStatus(chipRow, snapshot) {
+        for (const input of statusInputs(chipRow)) {
+          input.checked = snapshot[input.dataset.status];
+        }
+      }
+
+      function setSaveStatus(chipRow, message, state = "") {
+        const status = chipRow.querySelector("[data-save-status]");
+        if (!status) return;
+        status.textContent = message;
+        status.dataset.state = state;
+      }
+
+      async function saveStatus(chipRow) {
+        const stateUrl = chipRow.dataset.bookStateUrl;
+        if (!stateUrl) return;
+
+        const snapshot = statusSnapshots.get(chipRow);
+        const body = new URLSearchParams();
+        for (const input of statusInputs(chipRow)) {
+          if (input.checked) body.append(input.name, "on");
+          input.disabled = true;
+        }
+        chipRow.setAttribute("aria-busy", "true");
+        setSaveStatus(chipRow, "Saving…");
+
+        try {
+          const response = await fetch(stateUrl, {
+            body,
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+            method: "POST",
+          });
+          if (!response.ok) throw new Error(`Save failed: ${response.status}`);
+          statusSnapshots.set(chipRow, snapshotStatus(chipRow));
+          setSaveStatus(chipRow, "Saved");
+          window.setTimeout(() => setSaveStatus(chipRow, ""), 1500);
+        } catch (error) {
+          restoreStatus(chipRow, snapshot);
+          setSaveStatus(chipRow, "Not saved", "error");
+          console.error(error);
+        } finally {
+          for (const input of statusInputs(chipRow)) input.disabled = false;
+          chipRow.removeAttribute("aria-busy");
+        }
+      }
+
+      for (const chipRow of document.querySelectorAll("[data-status-chips]")) {
+        statusSnapshots.set(chipRow, snapshotStatus(chipRow));
+      }
+
       document.addEventListener("change", (event) => {
         const changed = event.target;
-        if (
-          !changed.matches(
-            '.chip-input[data-status="owned"], .chip-input[data-status="read"]',
-          ) ||
-          !changed.checked
-        ) {
-          return;
-        }
+        if (!changed.matches(".chip-input[data-status]")) return;
+
         const chipRow = changed.closest("[data-status-chips]");
-        const wanted = chipRow?.querySelector(
-          '.chip-input[data-status="wanted"]',
-        );
-        if (wanted?.checked) {
-          wanted.checked = false;
+        if (!chipRow) return;
+        if (
+          changed.checked &&
+          ["owned", "read"].includes(changed.dataset.status)
+        ) {
+          const wanted = chipRow.querySelector(
+            '.chip-input[data-status="wanted"]',
+          );
+          if (wanted) wanted.checked = false;
         }
+        void saveStatus(chipRow);
       });
     </script>
   </body>

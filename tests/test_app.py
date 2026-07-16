@@ -130,6 +130,40 @@ class AppTests(unittest.TestCase):
             self.assertIn("Owned · skip", owned_response.text)
             self.assertIn("First Book", owned_response.text)
 
+    def test_book_state_controls_have_automatic_save_endpoints_without_buttons(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            series_response = client.get("/series/example-series")
+            shop_response = client.get("/shop")
+
+            self.assertIn("data-book-state-url", series_response.text)
+            self.assertIn("data-book-state-url", shop_response.text)
+            self.assertNotIn("Save all changes", series_response.text)
+            self.assertNotIn(">Save</button>", shop_response.text)
+
+    def test_book_state_endpoint_returns_json_for_automatic_save(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            response = client.post(
+                "/books/example-series/second-book/state",
+                data={"owned": "on", "read": "on"},
+                headers={"accept": "application/json"},
+            )
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json(), {"saved": True})
+            with (data_dir / "state.yaml").open(encoding="utf-8") as handle:
+                state = yaml.safe_load(handle)
+            self.assertTrue(state["books"]["example-series/second-book"]["owned"])
+            self.assertTrue(state["books"]["example-series/second-book"]["read"])
+            self.assertFalse(state["books"]["example-series/second-book"]["wanted"])
+
     def test_series_bulk_save_preserves_sort_order(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)

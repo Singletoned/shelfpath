@@ -341,6 +341,8 @@ async def book_state_post(request):
         wanted="wanted" in form,
         list_id=_active_list_id(request),
     )
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse({"saved": True})
     return RedirectResponse(_redirect_target(request, book_key), status_code=HTTP_SEE_OTHER)
 
 

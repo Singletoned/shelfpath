@@ -77,9 +77,6 @@ endblock title %} {% block content %}
       method="post"
       action="{{ url_for('series_state', series_id=series.id) }}?sort={{ sort_order }}&filter={{ filter_mode }}"
     >
-      <p class="save-action-row">
-        <button class="save-action" type="submit">Save all changes</button>
-      </p>
       <ol class="book-list series-detail-layout">
         {% for book in series.books %}
         <li
@@ -114,8 +111,11 @@ endblock title %} {% block content %}
             {% if book.author and book.author != series.author %}
             <div class="book-meta">{{ book.author }}</div>
             {% endif %}
-            <input type="hidden" name="book_key" value="{{ book['key'] }}" />
-            <div class="chip-row" data-status-chips>
+            <div
+              class="chip-row"
+              data-book-state-url="{{ url_for('book_state', book_key=book['key']) }}"
+              data-status-chips
+            >
               <label>
                 <input
                   class="chip-input"
@@ -164,14 +164,16 @@ endblock title %} {% block content %}
                 />
                 <span class="chip read">READ</span>
               </label>
+              <span
+                class="save-status"
+                aria-live="polite"
+                data-save-status
+              ></span>
             </div>
           </div>
         </li>
         {% endfor %}
       </ol>
-      <p class="save-action-row">
-        <button class="save-action" type="submit">Save all changes</button>
-      </p>
     </form>
     <p class="attribution">
       Some covers provided by
