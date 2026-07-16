@@ -98,6 +98,29 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.headers["location"], "/shop")
         self.assertEqual(store.email, "test@example.invalid")
 
+    def test_local_auth_refreshes_stale_user_after_a_database_reset(self):
+        settings = self._settings(Path("unused"), storage="supabase").__class__(
+            **{
+                **self._settings(Path("unused"), storage="supabase").__dict__,
+                "local_auth_email": "test@example.invalid",
+                "local_auth_password": "local-password",
+                "supabase_service_role_key": "service-role-key",
+            }
+        )
+        store = LocalAuthStore(
+            user_ids=[
+                "00000000-0000-0000-0000-000000000001",
+                "00000000-0000-0000-0000-000000000002",
+            ]
+        )
+        client = TestClient(app_module.create_app(settings=settings, store=store))
+
+        client.get("/login")
+        response = client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(store.loaded_user_id, "00000000-0000-0000-0000-000000000002")
+
     def test_series_page_can_sort_by_title(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -298,20 +321,27 @@ class AppTests(unittest.TestCase):
 
 
 class LocalAuthStore:
-    def __init__(self):
+    def __init__(self, user_ids=None):
         self.email = None
+        self.loaded_user_id = None
+        self.user_ids = user_ids or ["00000000-0000-0000-0000-000000000001"]
 
     async def local_test_user(self, email, password):
         self.email = email
         self.password = password
+        user_id = self.user_ids.pop(0) if len(self.user_ids) > 1 else self.user_ids[0]
         return {
-            "id": "00000000-0000-0000-0000-000000000001",
+            "id": user_id,
             "email": email,
             "access_token": "service-role-key",
             "refresh_token": "local-testing",
             "expires_at": None,
             "local_auth": True,
         }
+
+    async def load_library(self, user, list_id=None):
+        self.loaded_user_id = user["id"]
+        return {"current_list": None, "lists": [], "series": [], "warnings": []}
 
 
 class FailingStore:

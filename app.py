@@ -428,6 +428,15 @@ async def _user_for_request(request):
     settings = request.app.state.settings
     if settings.storage != STORAGE_SUPABASE:
         return current_user(request)
+    if settings.debug and settings.local_auth_email:
+        previous_user = current_user(request)
+        user = await request.app.state.store.local_test_user(
+            settings.local_auth_email, settings.local_auth_password
+        )
+        if previous_user is None or previous_user.get("id") != user["id"]:
+            request.session.pop(ACTIVE_LIST_SESSION_KEY, None)
+        request.session["user"] = user
+        return user
     return await fresh_user(
         request,
         settings.supabase_url,
