@@ -67,7 +67,7 @@ The sandbox data persists between normal `just local-run` sessions. Run Docker-b
 just local-e2e
 ```
 
-This starts the local stack, applies migrations, imports the catalogue, allows the local test user to access AI suggestions, runs the Playwright test container, and tears the stack down.
+This starts the local stack, applies migrations, imports the catalogue, allows the local test user to access AI suggestions, runs the Playwright test container from `tests/compose.yaml`, and tears the stack down. The normal local app uses the separate root `compose.yaml`, so test containers and networks cannot be reused accidentally by interactive development.
 
 If a terminal is interrupted before cleanup, run:
 
@@ -75,7 +75,7 @@ If a terminal is interrupted before cleanup, run:
 just local-run-stop
 ```
 
-The Supabase CLI owns its official local service containers; the app Compose service shares their `supabase_network_shelfpath` network and talks to the local Kong API by container name. No app traffic goes to live Supabase.
+The Supabase CLI owns its official local service containers. Both Compose setups share their `supabase_network_shelfpath` network and talk to the local Kong API by container name: root `compose.yaml` runs interactive development, while `tests/compose.yaml` runs the isolated browser-test app and runner. No app traffic goes to live Supabase.
 
 The local sandbox is a separate database from live Supabase, so random clicking and state changes cannot affect production data. The first `supabase start` may need internet access to download Docker images; after that it can run offline while the images and Docker volume remain on the machine. Run `just local-covers-fetch` while online to populate local Open Library cover IDs and cache cover images for offline design checks.
 

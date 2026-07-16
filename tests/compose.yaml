@@ -1,9 +1,11 @@
+name: shelfpath-tests
+
 services:
   shelfpath:
     build:
-      context: .
+      context: ..
     env_file:
-      - local-supabase.env
+      - ../local-supabase.env
     environment:
       SHELFPATH_STORAGE: supabase
       SUPABASE_URL: http://supabase_kong_shelfpath:8000
@@ -19,15 +21,34 @@ services:
       start_period: 10s
     init: true
     networks:
-      - app
+      - test
       - supabase
-    ports:
-      - 127.0.0.1:8731:8731
     volumes:
-      - .:/app
+      - ..:/app
+
+  e2e:
+    build:
+      context: ../e2e
+    command:
+      - python
+      - -m
+      - unittest
+      - discover
+      - -s
+      - e2e
+    depends_on:
+      shelfpath:
+        condition: service_healthy
+    environment:
+      SHELFPATH_E2E_BASE_URL: http://shelfpath:8731
+    networks:
+      - test
+    volumes:
+      - ..:/workspace:ro
+    working_dir: /workspace
 
 networks:
-  app:
+  test:
   supabase:
     external: true
     name: supabase_network_shelfpath

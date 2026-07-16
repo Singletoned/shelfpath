@@ -4,8 +4,17 @@ set -eu
 PROJECT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$PROJECT_DIR"
 
+app_compose() {
+	docker compose --env-file local-supabase.env --file compose.yaml "$@"
+}
+
+test_compose() {
+	docker compose --env-file local-supabase.env --file tests/compose.yaml "$@"
+}
+
 cleanup() {
-	docker compose --env-file local-supabase.env --profile e2e down 2>/dev/null || true
+	test_compose down 2>/dev/null || true
+	app_compose down 2>/dev/null || true
 	supabase stop 2>/dev/null || true
 }
 
@@ -53,8 +62,7 @@ fi
 
 if [ "$run_e2e" = true ]; then
 	run_with_local_env python scripts/allow_ai_suggestion_user.py local@shelfpath.test
-	docker compose --env-file local-supabase.env --profile e2e up --build \
-		--abort-on-container-exit --exit-code-from e2e e2e
+	test_compose up --build --abort-on-container-exit --exit-code-from e2e e2e
 else
-	docker compose --env-file local-supabase.env up --build
+	app_compose up --build
 fi
