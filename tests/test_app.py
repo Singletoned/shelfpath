@@ -66,6 +66,18 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 303)
         self.assertEqual(response.headers["location"], "/login?next=/")
 
+    def test_login_page_uses_a_constrained_spaced_form(self):
+        settings = self._settings(Path("unused"), storage="supabase")
+        app = app_module.create_app(settings=settings, store=FailingStore())
+        client = TestClient(app)
+
+        response = client.get("/login")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('class="login-page"', response.text)
+        self.assertIn('class="login-form"', response.text)
+        self.assertIn('class="login-intro"', response.text)
+
     def test_login_redirect_preserves_requested_query(self):
         settings = self._settings(Path("unused"), storage="supabase")
         app = app_module.create_app(settings=settings, store=FailingStore())

@@ -131,7 +131,7 @@ The row number should align to the first baseline of the book title, not float a
 
 ## Form elements
 
-Text inputs, textareas, and selects (used on the login, lists, and suggest pages) should be styled consistently with the rest of the app: matching border radius, padding, font, and color tokens. Browser-default form elements break the visual coherence.
+Text inputs, textareas, and selects (used on the login, lists, and suggest pages) should be styled consistently with the rest of the app: matching border radius, padding, font, and color tokens. Browser-default form elements break the visual coherence. The login form stays within a readable 32rem column, with deliberate gaps between its introduction, field, submit action, and feedback.
 
 ## Navigation
 
