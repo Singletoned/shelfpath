@@ -132,8 +132,11 @@ class AppTests(unittest.TestCase):
             self.assertIn('class="wordmark-logo"', response.text)
             self.assertIn("/static/icons/app-icon-1024-square.svg", response.text)
             self.assertIn('class="card series-card-link"', response.text)
-            self.assertIn('href="/series/example-series"', response.text)
-            self.assertNotIn('<h3>\n          <a href="/series/example-series"', response.text)
+            self.assertRegex(
+                response.text,
+                r'href="(?:https?://[^\"]+)?/series/example-series"',
+            )
+            self.assertNotRegex(response.text, r"<h3>\s*<a\b")
 
     def test_series_page_can_sort_by_title(self):
         with tempfile.TemporaryDirectory() as temp_dir:
