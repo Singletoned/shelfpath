@@ -53,7 +53,7 @@ For local Supabase-backed testing without touching live data or waiting for magi
 just local-run
 ```
 
-This starts Supabase, joins the Shelfpath Compose service to Supabase’s Docker network, and runs the app in the foreground at <http://127.0.0.1:8731/>. It watches the checkout for changes and logs in immediately through `/login` using the local test user. `Ctrl-C` stops both the app and local Supabase stack.
+This starts Supabase, joins the Shelfpath Compose service to Supabase’s Docker network, and runs the app in the foreground at <http://127.0.0.1:8731/>. It watches the checkout for changes and initially logs in immediately through `/login` using the local test user. Signing out leaves you on the sign-in page, where **Sign in as local test user** lets you test the complete local sign-out/sign-in flow without email. `Ctrl-C` stops both the app and local Supabase stack.
 
 For a completely fresh local database with current migrations, catalogue data, and local test user, run instead:
 
@@ -86,7 +86,7 @@ SHELFPATH_LOCAL_AUTH_EMAIL=you@example.com
 SUPABASE_SERVICE_ROLE_KEY=<secret key>
 ```
 
-With `SHELFPATH_DEBUG=true`, visiting `/login` signs in as that existing Supabase user and redirects immediately. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Render.
+With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existing Supabase user and redirects immediately. After signing out, the sign-in page offers **Sign in as local test user** so you can test the local sign-in flow without email. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Render.
 
 ## Supabase setup
 

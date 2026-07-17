@@ -8,7 +8,18 @@
 
   {% if not supabase_url or not supabase_publishable_key %}
   <p class="warning">Supabase is not configured for this environment.</p>
-  {% else %}
+  {% else %} {% if local_auth_enabled %}
+  <form
+    class="login-form local-login-form"
+    method="post"
+    action="{{ url_for('local_login') }}"
+  >
+    <input type="hidden" name="next" value="{{ next_url }}" />
+    <button type="submit">Sign in as local test user</button>
+  </form>
+  <p class="muted local-login-note">Local testing only.</p>
+  <p class="login-divider">Or sign in by email</p>
+  {% endif %}
   <form id="login-form" class="login-form">
     <input type="hidden" id="next-url" value="{{ next_url }}" />
     <label>

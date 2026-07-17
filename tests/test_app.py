@@ -110,6 +110,35 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.headers["location"], "/shop")
         self.assertEqual(store.email, "test@example.invalid")
 
+    def test_local_logout_shows_local_sign_in_action(self):
+        settings = self._settings(Path("unused"), storage="supabase").__class__(
+            **{
+                **self._settings(Path("unused"), storage="supabase").__dict__,
+                "local_auth_email": "test@example.invalid",
+                "local_auth_password": "local-password",
+                "supabase_service_role_key": "service-role-key",
+            }
+        )
+        store = LocalAuthStore()
+        client = TestClient(app_module.create_app(settings=settings, store=store))
+
+        client.get("/login")
+        logout_response = client.post("/logout", follow_redirects=False)
+        signed_out_page = client.get("/login?local_signed_out=1")
+        protected_response = client.get("/", follow_redirects=False)
+        sign_in_response = client.post(
+            "/login/local", data={"next": "/shop"}, follow_redirects=False
+        )
+
+        self.assertEqual(logout_response.status_code, 303)
+        self.assertEqual(logout_response.headers["location"], "/login?local_signed_out=1")
+        self.assertEqual(signed_out_page.status_code, 200)
+        self.assertIn("Sign in as local test user", signed_out_page.text)
+        self.assertEqual(protected_response.status_code, 303)
+        self.assertEqual(protected_response.headers["location"], "/login?next=/")
+        self.assertEqual(sign_in_response.status_code, 303)
+        self.assertEqual(sign_in_response.headers["location"], "/shop")
+
     def test_local_auth_refreshes_stale_user_after_a_database_reset(self):
         settings = self._settings(Path("unused"), storage="supabase").__class__(
             **{

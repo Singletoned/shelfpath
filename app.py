@@ -23,6 +23,7 @@ SEARCH_STOP_WORDS = frozenset({"a", "an", "and", "of", "the", "to"})
 STORAGE_SUPABASE = "supabase"
 
 ACTIVE_LIST_SESSION_KEY = "active_list_id"
+LOCAL_AUTH_SIGNED_OUT_SESSION_KEY = "local_auth_signed_out"
 
 templates = Jinja2Templates(directory=DEFAULT_TEMPLATE_DIR)
 
@@ -231,11 +232,9 @@ async def list_share_post(request):
 
 async def login_get(request):
     settings = request.app.state.settings
-    if settings.local_auth_email and settings.debug and settings.storage == STORAGE_SUPABASE:
-        request.session["user"] = await request.app.state.store.local_test_user(
-            settings.local_auth_email,
-            settings.local_auth_password,
-        )
+    local_auth_enabled = _local_auth_enabled(settings)
+    if local_auth_enabled and not request.session.get(LOCAL_AUTH_SIGNED_OUT_SESSION_KEY):
+        await _sign_in_local_test_user(request)
         return RedirectResponse(
             _safe_next(request.query_params.get("next", "/")), status_code=HTTP_SEE_OTHER
         )
@@ -244,11 +243,20 @@ async def login_get(request):
         "login.html",
         _context(
             request,
-            next_url=request.query_params.get("next", "/"),
+            local_auth_enabled=local_auth_enabled,
+            next_url=_safe_next(request.query_params.get("next", "/")),
             supabase_url=settings.supabase_url,
             supabase_publishable_key=settings.supabase_publishable_key,
         ),
     )
+
+
+async def local_login_post(request):
+    if not _local_auth_enabled(request.app.state.settings):
+        return RedirectResponse("/login", status_code=HTTP_SEE_OTHER)
+    form = await request.form()
+    await _sign_in_local_test_user(request)
+    return RedirectResponse(_safe_next(form.get("next")), status_code=HTTP_SEE_OTHER)
 
 
 async def auth_callback_get(request):
@@ -288,7 +296,11 @@ async def auth_session_post(request):
 
 
 async def logout_post(request):
+    local_auth_enabled = _local_auth_enabled(request.app.state.settings)
     request.session.clear()
+    if local_auth_enabled:
+        request.session[LOCAL_AUTH_SIGNED_OUT_SESSION_KEY] = True
+        return RedirectResponse("/login?local_signed_out=1", status_code=HTTP_SEE_OTHER)
     return RedirectResponse("/login", status_code=HTTP_SEE_OTHER)
 
 
@@ -365,6 +377,7 @@ def create_app(
             Route("/health", health_get, methods=("GET",), name="health"),
             Route("/", index_get, methods=("GET",), name="index"),
             Route("/login", login_get, methods=("GET",), name="login"),
+            Route("/login/local", local_login_post, methods=("POST",), name="local_login"),
             Route("/auth/callback", auth_callback_get, methods=("GET",), name="auth_callback"),
             Route("/auth/session", auth_session_post, methods=("POST",), name="auth_session"),
             Route("/logout", logout_post, methods=("POST",), name="logout"),
@@ -428,20 +441,32 @@ async def _user_for_request(request):
     settings = request.app.state.settings
     if settings.storage != STORAGE_SUPABASE:
         return current_user(request)
-    if settings.debug and settings.local_auth_email:
-        previous_user = current_user(request)
-        user = await request.app.state.store.local_test_user(
-            settings.local_auth_email, settings.local_auth_password
-        )
-        if previous_user is None or previous_user.get("id") != user["id"]:
-            request.session.pop(ACTIVE_LIST_SESSION_KEY, None)
-        request.session["user"] = user
-        return user
+    if _local_auth_enabled(settings) and not request.session.get(LOCAL_AUTH_SIGNED_OUT_SESSION_KEY):
+        return await _sign_in_local_test_user(request)
     return await fresh_user(
         request,
         settings.supabase_url,
         settings.supabase_publishable_key,
     )
+
+
+def _local_auth_enabled(settings: Settings) -> bool:
+    return bool(
+        settings.debug and settings.local_auth_email and settings.storage == STORAGE_SUPABASE
+    )
+
+
+async def _sign_in_local_test_user(request):
+    settings = request.app.state.settings
+    previous_user = current_user(request)
+    user = await request.app.state.store.local_test_user(
+        settings.local_auth_email, settings.local_auth_password
+    )
+    if previous_user is None or previous_user.get("id") != user["id"]:
+        request.session.pop(ACTIVE_LIST_SESSION_KEY, None)
+    request.session.pop(LOCAL_AUTH_SIGNED_OUT_SESSION_KEY, None)
+    request.session["user"] = user
+    return user
 
 
 async def _library_for_request(request, user):
