@@ -9,6 +9,10 @@ services:
     environment:
       SHELFPATH_STORAGE: supabase
       SUPABASE_URL: http://supabase_kong_shelfpath:8000
+      SHELFPATH_SMTP_HOST: mailpit
+      SHELFPATH_SMTP_PORT: 1025
+      SHELFPATH_MAIL_FROM: Shelfpath <noreply@shelfpath.test>
+      SHELFPATH_PUBLIC_URL: http://shelfpath:8731
     healthcheck:
       test:
         - CMD
@@ -20,11 +24,24 @@ services:
       retries: 12
       start_period: 10s
     init: true
+    depends_on:
+      mailpit:
+        condition: service_healthy
     networks:
       - test
       - supabase
     volumes:
       - ..:/app
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://127.0.0.1:8025/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      - test
 
   e2e:
     build:
@@ -41,8 +58,12 @@ services:
         condition: service_healthy
     environment:
       SHELFPATH_E2E_BASE_URL: http://shelfpath:8731
+      SHELFPATH_E2E_SUPABASE_URL: http://supabase_kong_shelfpath:8000
+    env_file:
+      - ../local-supabase.env
     networks:
       - test
+      - supabase
     volumes:
       - ..:/workspace:ro
     working_dir: /workspace

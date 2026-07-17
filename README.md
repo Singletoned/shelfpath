@@ -88,6 +88,12 @@ SUPABASE_SERVICE_ROLE_KEY=<secret key>
 
 With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existing Supabase user and redirects immediately. After signing out, the sign-in page offers **Sign in as local test user** so you can test the local sign-in flow without email. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Render.
 
+## Sharing lists
+
+List owners open **Lists**, choose **Manage people**, then enter an email address and choose **Can update** or **View only**. Shelfpath sends an invitation email. A recipient signs in with that same email address; an account is created when needed and the list appears under **Lists** automatically. Owners can change access, remove people, and see pending invitations from the People screen.
+
+Sending invitations requires SMTP. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, and `SHELFPATH_PUBLIC_URL`. SMTP credentials belong only in Render environment settings, never in the repository.
+
 ## Supabase setup
 
 Supabase schema changes are managed from this repository. Do not paste migrations into the dashboard for normal development. On GitHub, `.github/workflows/supabase.yml` pushes migrations automatically when `supabase/**` changes on `main`, once the required repository secrets are configured.

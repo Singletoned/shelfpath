@@ -1,0 +1,84 @@
+{% extends "base.html" %} {% block title %}People · {{ people.list.name }} ·
+Shelfpath{% endblock title %} {% block content %}
+<section class="people-page">
+  <a class="back-link" href="{{ url_for('lists') }}">‹ Lists</a>
+  <h2>People</h2>
+  <p class="muted">Manage access to {{ people.list.name }}.</p>
+
+  {% if invited %}
+  <p class="notice">Invitation sent to {{ invited }}.</p>
+  {% endif %}
+
+  <section class="card invite-card">
+    <h3>Invite someone</h3>
+    <p class="muted">They will receive an email with a link to this list.</p>
+    <form
+      method="post"
+      action="{{ url_for('list_share') }}"
+      class="invite-form"
+    >
+      <input type="hidden" name="list_id" value="{{ people.list.id }}" />
+      <label>
+        Email address
+        <input name="email" type="email" autocomplete="email" required />
+      </label>
+      <label>
+        Access
+        <select name="role">
+          <option value="editor">Can update</option>
+          <option value="viewer">View only</option>
+        </select>
+      </label>
+      <button type="submit">Send invite</button>
+    </form>
+  </section>
+
+  <ul class="cards people-list">
+    {% for person in people.people %}
+    <li class="card person-card">
+      <div>
+        <strong>{{ person.email }}</strong>
+        <p class="muted">
+          {% if person.status == 'pending' %}Invitation pending{% else %}{{
+          person.role|capitalize }}{% endif %}
+        </p>
+      </div>
+      {% if person.role == 'owner' %}
+      <span class="role-label">Owner</span>
+      {% else %}
+      <div class="person-actions">
+        <form
+          method="post"
+          action="{{ url_for('list_person_update', list_id=people.list.id) }}"
+        >
+          <input type="hidden" name="list_id" value="{{ people.list.id }}" />
+          <input type="hidden" name="email" value="{{ person.email }}" />
+          <label class="visually-hidden" for="role-{{ loop.index }}"
+            >Access for {{ person.email }}</label
+          >
+          <select id="role-{{ loop.index }}" name="role">
+            {% if person.role == 'editor' %}
+            <option value="editor" selected>Can update</option>
+            <option value="viewer">View only</option>
+            {% else %}
+            <option value="editor">Can update</option>
+            <option value="viewer" selected>View only</option>
+            {% endif %}
+          </select>
+          <button class="quiet-button" type="submit">Update</button>
+        </form>
+        <form
+          method="post"
+          action="{{ url_for('list_person_remove', list_id=people.list.id) }}"
+        >
+          <input type="hidden" name="list_id" value="{{ people.list.id }}" />
+          <input type="hidden" name="email" value="{{ person.email }}" />
+          <button class="quiet-button" type="submit">Remove</button>
+        </form>
+      </div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock content %}

@@ -344,6 +344,12 @@ class AppTests(unittest.TestCase):
             local_auth_email=None,
             local_auth_password=None,
             supabase_service_role_key=None,
+            smtp_host=None,
+            smtp_port=1025,
+            smtp_username=None,
+            smtp_password=None,
+            mail_from="Shelfpath <noreply@example.test>",
+            public_url="http://testserver",
         )
 
     def _write_data(self, data_dir: Path) -> None:

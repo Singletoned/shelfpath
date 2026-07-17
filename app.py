@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from difflib import SequenceMatcher
+from urllib.parse import quote
 
 from starlette.applications import Starlette
 from starlette.middleware.sessions import SessionMiddleware
@@ -14,6 +15,7 @@ from booksequencer.ai_series import OpenAISeriesInvestigator
 from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
 from booksequencer.covers import COVER_ROOT, STATIC_ROOT
+from booksequencer.email import InvitationEmailSender
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
@@ -211,6 +213,18 @@ async def list_select_post(request):
     return RedirectResponse(_safe_next(form.get("next")), status_code=HTTP_SEE_OTHER)
 
 
+async def list_people_get(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    people = await request.app.state.store.get_list_people(user, request.path_params["list_id"])
+    return templates.TemplateResponse(
+        request,
+        "list_people.html",
+        _context(request, people=people, invited=request.query_params.get("invited")),
+    )
+
+
 async def list_share_post(request):
     user = await _user_for_request(request)
     if _requires_auth(request.app, user):
@@ -225,9 +239,44 @@ async def list_share_post(request):
         raise ValueError("email is required.")
     if not isinstance(role, str):
         raise ValueError("role is required.")
+    sender = request.app.state.invitation_email_sender
+    if sender is None:
+        raise ValueError("SHELFPATH_SMTP_HOST must be configured before sending invitations.")
+    people = await request.app.state.store.get_list_people(user, list_id)
     await request.app.state.store.share_list(user, list_id, email, role)
+    await sender.send_list_invitation(email.strip().lower(), people["list"]["name"], role)
     request.session[ACTIVE_LIST_SESSION_KEY] = list_id
-    return RedirectResponse("/lists", status_code=HTTP_SEE_OTHER)
+    return RedirectResponse(
+        f"/lists/{list_id}/people?invited={quote(email.strip().lower())}",
+        status_code=HTTP_SEE_OTHER,
+    )
+
+
+async def list_person_update_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    form = await request.form()
+    list_id = form.get("list_id")
+    email = form.get("email")
+    role = form.get("role")
+    if not isinstance(list_id, str) or not isinstance(email, str) or not isinstance(role, str):
+        raise ValueError("list_id, email, and role are required.")
+    await request.app.state.store.share_list(user, list_id, email, role)
+    return RedirectResponse(f"/lists/{list_id}/people", status_code=HTTP_SEE_OTHER)
+
+
+async def list_person_remove_post(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    form = await request.form()
+    list_id = form.get("list_id")
+    email = form.get("email")
+    if not isinstance(list_id, str) or not isinstance(email, str):
+        raise ValueError("list_id and email are required.")
+    await request.app.state.store.remove_list_person(user, list_id, email)
+    return RedirectResponse(f"/lists/{list_id}/people", status_code=HTTP_SEE_OTHER)
 
 
 async def login_get(request):
@@ -384,6 +433,19 @@ def create_app(
             Route("/lists", lists_get, methods=("GET",), name="lists"),
             Route("/lists/select", list_select_post, methods=("POST",), name="list_select"),
             Route("/lists/share", list_share_post, methods=("POST",), name="list_share"),
+            Route("/lists/{list_id}/people", list_people_get, methods=("GET",), name="list_people"),
+            Route(
+                "/lists/{list_id}/people/update",
+                list_person_update_post,
+                methods=("POST",),
+                name="list_person_update",
+            ),
+            Route(
+                "/lists/{list_id}/people/remove",
+                list_person_remove_post,
+                methods=("POST",),
+                name="list_person_remove",
+            ),
             Route("/suggest", suggest_get, methods=("GET",), name="suggest"),
             Route("/suggest", suggest_post, methods=("POST",), name="suggest_post"),
             Route(
@@ -424,6 +486,7 @@ def create_app(
     )
     app.state.settings = resolved_settings
     app.state.store = resolved_store
+    app.state.invitation_email_sender = _invitation_email_sender(resolved_settings)
     app.state.ai_series_investigator = ai_series_investigator or OpenAISeriesInvestigator(
         resolved_settings.openai_api_key,
         resolved_settings.openai_model,
@@ -447,6 +510,19 @@ async def _user_for_request(request):
         request,
         settings.supabase_url,
         settings.supabase_publishable_key,
+    )
+
+
+def _invitation_email_sender(settings: Settings) -> InvitationEmailSender | None:
+    if settings.smtp_host is None:
+        return None
+    return InvitationEmailSender(
+        settings.smtp_host,
+        settings.smtp_port,
+        settings.smtp_username,
+        settings.smtp_password,
+        settings.mail_from,
+        settings.public_url,
     )
 
 

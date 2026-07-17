@@ -25,6 +25,12 @@ class Settings:
     local_auth_email: str | None
     local_auth_password: str | None
     supabase_service_role_key: str | None
+    smtp_host: str | None
+    smtp_port: int
+    smtp_username: str | None
+    smtp_password: str | None
+    mail_from: str
+    public_url: str
 
 
 def load_settings() -> Settings:
@@ -44,6 +50,12 @@ def load_settings() -> Settings:
         local_auth_email=_optional_env("SHELFPATH_LOCAL_AUTH_EMAIL"),
         local_auth_password=_optional_env("SHELFPATH_LOCAL_AUTH_PASSWORD"),
         supabase_service_role_key=_optional_env("SUPABASE_SERVICE_ROLE_KEY"),
+        smtp_host=_optional_env("SHELFPATH_SMTP_HOST"),
+        smtp_port=int(os.environ.get("SHELFPATH_SMTP_PORT", "1025")),
+        smtp_username=_optional_env("SHELFPATH_SMTP_USERNAME"),
+        smtp_password=_optional_env("SHELFPATH_SMTP_PASSWORD"),
+        mail_from=os.environ.get("SHELFPATH_MAIL_FROM", "Shelfpath <noreply@shelfpath.app>"),
+        public_url=os.environ.get("SHELFPATH_PUBLIC_URL", "https://shelfpath.app"),
     )
 
 

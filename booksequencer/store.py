@@ -27,6 +27,14 @@ class Store(Protocol):
         role: str,
     ) -> None: ...
 
+    async def get_list_people(
+        self, user: dict[str, Any] | None, list_id: str
+    ) -> dict[str, Any]: ...
+
+    async def remove_list_person(
+        self, user: dict[str, Any] | None, list_id: str, email: str
+    ) -> None: ...
+
     async def local_test_user(self, email: str, password: str | None) -> dict[str, Any]: ...
 
     async def can_suggest_series(self, user: dict[str, Any] | None) -> bool: ...
@@ -93,6 +101,14 @@ class FileStore:
         list_id: str,
         email: str,
         role: str,
+    ) -> None:
+        raise ValueError("Shared lists require Supabase storage.")
+
+    async def get_list_people(self, user: dict[str, Any] | None, list_id: str) -> dict[str, Any]:
+        raise ValueError("Shared lists require Supabase storage.")
+
+    async def remove_list_person(
+        self, user: dict[str, Any] | None, list_id: str, email: str
     ) -> None:
         raise ValueError("Shared lists require Supabase storage.")
 
@@ -223,6 +239,31 @@ class SupabaseStore:
                 "member_email": normalized_email,
                 "member_role": role,
             },
+        )
+
+    async def get_list_people(self, user: dict[str, Any] | None, list_id: str) -> dict[str, Any]:
+        current_user = _require_user(user)
+        lists = await self.list_lists(current_user)
+        book_list = next((item for item in lists if item["id"] == list_id), None)
+        if book_list is None or not book_list["is_owner"]:
+            raise ValueError("Only the list owner can manage people.")
+        people = await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/list_people",
+            json={"target_list_id": list_id},
+        )
+        return {"list": book_list, "people": people}
+
+    async def remove_list_person(
+        self, user: dict[str, Any] | None, list_id: str, email: str
+    ) -> None:
+        current_user = _require_user(user)
+        await self._request(
+            current_user,
+            "POST",
+            "/rest/v1/rpc/remove_list_person_by_email",
+            json={"target_list_id": list_id, "member_email": email.strip().lower()},
         )
 
     async def local_test_user(self, email: str, password: str | None) -> dict[str, Any]:

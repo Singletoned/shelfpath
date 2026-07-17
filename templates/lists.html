@@ -19,31 +19,12 @@
       <button type="submit">Use this list</button>
     </form>
     {% endif %} {% if book_list.is_owner %}
-    <h4>Share this list</h4>
-    <form
-      method="post"
-      action="{{ url_for('list_share') }}"
-      class="checkbox-row"
+    <a
+      class="button-link secondary-action"
+      href="{{ url_for('list_people', list_id=book_list.id) }}"
     >
-      <input type="hidden" name="list_id" value="{{ book_list.id }}" />
-      <label>
-        Email
-        <input name="email" type="email" required />
-      </label>
-      <label>
-        Role
-        <select name="role">
-          <option value="editor">Can update</option>
-          <option value="viewer">Can view</option>
-        </select>
-      </label>
-      <button type="submit">Share</button>
-    </form>
-    <p class="muted">
-      If they have not used Shelfpath before, this creates a pending invitation.
-      When they sign in with this email address, Supabase creates their account
-      and Shelfpath adds this list automatically.
-    </p>
+      Manage people
+    </a>
     {% endif %}
   </li>
   {% endfor %}
