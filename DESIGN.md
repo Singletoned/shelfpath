@@ -69,7 +69,7 @@ Reuse this layout wherever books appear:
 
 - Orange header with Shelfpath wordmark and cream search link to shop check.
 - Body overline: “MY SERIES”.
-- Series cards: paper background, light border, 14px radius, 16px padding.
+- Series cards: paper background, light border, 14px radius, 16px padding. The whole card is the link to the series; do not make only its title clickable.
 - Card shows title, author, wanted count in orange, stacked progress bar, and small legend.
 - Progress colors: read = blue, owned-unread = ink, track = light cream.
 

@@ -252,8 +252,27 @@
         margin: 0;
       }
 
-      .card h3 a {
+      .series-card-link,
+      .add-series-card {
+        color: inherit;
+        display: block;
         text-decoration: none;
+      }
+
+      .series-card-link:hover {
+        border-color: var(--strong-line);
+      }
+
+      .series-card-link:focus-visible,
+      .add-series-card:focus-visible {
+        outline: 3px solid var(--orange);
+        outline-offset: 2px;
+      }
+
+      .add-series-card {
+        border-style: dashed;
+        font-weight: 800;
+        text-align: center;
       }
 
       .muted {

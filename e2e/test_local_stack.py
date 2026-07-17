@@ -23,6 +23,19 @@ class LocalStackE2ETests(unittest.TestCase):
             finally:
                 browser.close()
 
+    def test_series_card_opens_when_its_progress_area_is_clicked(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(f"{BASE_URL}/login?next=/")
+
+                page.locator(".series-card-link .progress-track").first.click()
+
+                expect(page).to_have_url(f"{BASE_URL}/series/discworld")
+            finally:
+                browser.close()
+
     def test_owning_a_book_removes_its_hunting_tint_immediately(self):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()

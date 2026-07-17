@@ -121,6 +121,18 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(store.loaded_user_id, "00000000-0000-0000-0000-000000000002")
 
+    def test_home_series_card_is_a_single_full_card_link(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            response = client.get("/")
+
+            self.assertIn('class="card series-card-link"', response.text)
+            self.assertIn('href="/series/example-series"', response.text)
+            self.assertNotIn('<h3>\n          <a href="/series/example-series"', response.text)
+
     def test_series_page_can_sort_by_title(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)

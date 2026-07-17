@@ -3,40 +3,39 @@
 <p class="overline">My series</p>
 <ul class="cards">
   {% for series in library.series %}
-  <li class="card series-card">
-    <div class="series-card-heading">
-      <div>
-        <h3>
-          <a href="{{ url_for('series', series_id=series.id) }}"
-            >{{ series.title }}</a
-          >
-        </h3>
-        {% if series.author %}
-        <p class="muted">{{ series.author }}</p>
-        {% endif %}
+  <li>
+    <a
+      class="card series-card-link"
+      href="{{ url_for('series', series_id=series.id) }}"
+    >
+      <div class="series-card-heading">
+        <div>
+          <h3>{{ series.title }}</h3>
+          {% if series.author %}
+          <p class="muted">{{ series.author }}</p>
+          {% endif %}
+        </div>
+        <div class="wanted-count">{{ series.wanted_count }} wanted</div>
       </div>
-      <div class="wanted-count">{{ series.wanted_count }} wanted</div>
-    </div>
-    {% set read_percent = (series.read_count / series.book_count * 100) if
-    series.book_count else 0 %} {% set owned_unread = series.owned_count -
-    series.read_count %} {% if owned_unread < 0 %}{% set owned_unread = 0 %}{%
-    endif %} {% set owned_percent = (owned_unread / series.book_count * 100) if
-    series.book_count else 0 %}
-    <div class="progress-track" aria-hidden="true">
-      <div class="progress-read" style="width: {{ read_percent }}%"></div>
-      <div class="progress-owned" style="width: {{ owned_percent }}%"></div>
-    </div>
-    <div class="legend-row">
-      <span>{{ series.read_count }} read</span>
-      <span>{{ series.owned_count }} owned</span>
-      <span>{{ series.book_count }} total</span>
-    </div>
+      {% set read_percent = (series.read_count / series.book_count * 100) if
+      series.book_count else 0 %} {% set owned_unread = series.owned_count -
+      series.read_count %} {% if owned_unread < 0 %}{% set owned_unread = 0 %}{%
+      endif %} {% set owned_percent = (owned_unread / series.book_count * 100)
+      if series.book_count else 0 %}
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-read" style="width: {{ read_percent }}%"></div>
+        <div class="progress-owned" style="width: {{ owned_percent }}%"></div>
+      </div>
+      <div class="legend-row">
+        <span>{{ series.read_count }} read</span>
+        <span>{{ series.owned_count }} owned</span>
+        <span>{{ series.book_count }} total</span>
+      </div>
+    </a>
   </li>
   {% endfor %}
-  <li class="card" style="border-style: dashed; text-align: center">
-    <a
-      href="{{ url_for('suggest') }}"
-      style="font-weight: 800; text-decoration: none"
+  <li>
+    <a class="card add-series-card" href="{{ url_for('suggest') }}"
       >+ Add a series</a
     >
   </li>
