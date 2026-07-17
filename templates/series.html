@@ -1,7 +1,6 @@
 {% extends "base.html" %} {% block title %}{{ series.title }} · Shelfpath{%
 endblock title %} {% block content %}
 <section class="screen-header">
-  <a href="{{ url_for('index') }}">‹ Shelf</a>
   <h2>{{ series.title }}</h2>
   <p class="faint">
     {% if series.author %}{{ series.author }}{% endif %}{% if series.order %}{%
