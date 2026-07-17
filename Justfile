@@ -12,6 +12,7 @@ run:
 
 local-supabase-start:
     supabase start
+    supabase migration up --local
     PYTHONPATH=. uv run python scripts/write_local_supabase_env.py
     env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/seed_local_supabase.py
 

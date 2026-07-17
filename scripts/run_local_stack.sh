@@ -47,6 +47,7 @@ done
 trap cleanup EXIT INT TERM
 
 supabase start
+supabase migration up --local
 PYTHONPATH=. uv run python scripts/write_local_supabase_env.py
 
 if [ "$reset_catalogue" = true ]; then

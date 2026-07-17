@@ -52,6 +52,21 @@ class LocalStackE2ETests(unittest.TestCase):
             finally:
                 browser.close()
 
+    def test_failed_suggestion_is_saved_without_a_privilege_error(self):
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.goto(f"{BASE_URL}/login?next=/suggest")
+                page.locator('textarea[name="prompt"]').fill("A test series")
+                page.get_by_role("button", name="Investigate series").click()
+
+                expect(page.get_by_role("heading", name="Series suggestion")).to_be_visible()
+                expect(page.get_by_text("Investigation failed")).to_be_visible()
+                self.assertNotIn("Supabase request failed", page.content())
+            finally:
+                browser.close()
+
     def test_local_login_can_open_allowed_suggestions_page(self):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()
