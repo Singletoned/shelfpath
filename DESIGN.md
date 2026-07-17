@@ -67,7 +67,7 @@ Reuse this layout wherever books appear:
 
 ### Shelf / Home
 
-- Orange header with Shelfpath wordmark and cream search link to shop check.
+- Orange header with the Shelfpath book-mark icon immediately before the Shelfpath wordmark and a cream search link to shop check.
 - Body overline: “MY SERIES”.
 - Series cards: paper background, light border, 14px radius, 16px padding. The whole card is the link to the series; do not make only its title clickable.
 - Card shows title, author, wanted count in orange, stacked progress bar, and small legend.

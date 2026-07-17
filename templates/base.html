@@ -100,12 +100,22 @@
       }
 
       .wordmark {
+        align-items: center;
         color: var(--cream);
+        display: inline-flex;
         font-size: 1.55rem;
         font-weight: 900;
+        gap: 0.45rem;
         letter-spacing: -0.02em;
         margin-right: 0.7rem;
         text-decoration: none;
+      }
+
+      .wordmark-logo {
+        border-radius: 0.3rem;
+        display: block;
+        height: 1.65rem;
+        width: 1.65rem;
       }
 
       nav a {
@@ -918,7 +928,14 @@
     <header class="site-header">
       <div class="site-header-inner">
         <nav class="top-nav">
-          <a class="wordmark" href="{{ url_for('index') }}">Shelfpath</a>
+          <a class="wordmark" href="{{ url_for('index') }}">
+            <img
+              class="wordmark-logo"
+              src="{{ url_for('static', path='icons/app-icon-1024-square.svg') }}"
+              alt=""
+            />
+            Shelfpath
+          </a>
           <a
             class="{% if nav_section == 'shelf' %}active{% endif %}"
             href="{{ url_for('index') }}"

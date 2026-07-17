@@ -129,6 +129,8 @@ class AppTests(unittest.TestCase):
 
             response = client.get("/")
 
+            self.assertIn('class="wordmark-logo"', response.text)
+            self.assertIn("/static/icons/app-icon-1024-square.svg", response.text)
             self.assertIn('class="card series-card-link"', response.text)
             self.assertIn('href="/series/example-series"', response.text)
             self.assertNotIn('<h3>\n          <a href="/series/example-series"', response.text)
