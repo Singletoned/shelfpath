@@ -57,7 +57,11 @@ async def index_get(request):
         )
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
-    return templates.TemplateResponse(request, "index.html", _context(request, library=library))
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        _context(request, library=library, next_up=_next_up_books(library)),
+    )
 
 
 async def series_get(request):
@@ -691,6 +695,18 @@ def _sorted_series(series, sort_order):
     if sort_order == "title":
         books.sort(key=lambda book: _sort_title(book["title"]))
     return {**series, "books": books}
+
+
+def _next_up_books(library):
+    next_up = []
+    for series in library["series"]:
+        for book in series["books"]:
+            if book["owned"] and not book["read"]:
+                next_up.append({"book": book, "series": series})
+    return sorted(
+        next_up,
+        key=lambda item: (item["series"]["title"].casefold(), item["book"]["position"]),
+    )
 
 
 def _filtered_series(series, filter_mode):

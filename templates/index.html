@@ -1,5 +1,42 @@
-{% extends "base.html" %} {% block title %}Shelf · Shelfpath{% endblock title %}
-{% block content %}
+{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% block title
+%}Shelf · Shelfpath{% endblock title %} {% block content %} {% if next_up %}
+<section class="next-up" aria-labelledby="next-up-title">
+  <div class="section-heading">
+    <div>
+      <p class="overline">Next up</p>
+      <h2 id="next-up-title">Books you own and have not read</h2>
+    </div>
+    <span class="faint"
+      >{{ next_up | length }} book{% if next_up | length != 1 %}s{% endif
+      %}</span
+    >
+  </div>
+  <div class="next-up-list">
+    {% for item in next_up %}
+    <article class="book-row">
+      <span class="book-number">{{ item.book.position }}</span>
+      {{ book_ui.cover(item.book) }}
+      <div class="book-main">
+        <div>
+          <div class="book-title">
+            <a href="{{ url_for('series', series_id=item.series.id) }}"
+              >{{ item.book.title }}</a
+            >
+          </div>
+          <div class="book-meta">
+            {{ item.series.title }}{% if item.book.author and item.book.author
+            != item.series.author %} · {{ item.book.author }}{% endif %}
+          </div>
+        </div>
+        {{ book_ui.state_controls(item.book, url_for('book_state',
+        book_key=item.book['key']), url_for('index'), library.current_list.role
+        == 'viewer') }}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 <p class="overline">My series</p>
 <ul class="cards">
   {% for series in library.series %}

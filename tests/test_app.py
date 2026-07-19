@@ -197,6 +197,20 @@ class AppTests(unittest.TestCase):
         )
         self.assertEqual(store.accepted, ("00000000-0000-0000-0000-000000000001", "editor"))
 
+    def test_home_shows_owned_unread_books_as_next_up(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            client = TestClient(self._create_file_app(data_dir))
+
+            response = client.get("/")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("Next up", response.text)
+            self.assertIn("Books you own and have not read", response.text)
+            self.assertIn("Aardvark Book", response.text)
+            self.assertIn('class="next-up-list"', response.text)
+
     def test_home_series_card_is_a_single_full_card_link(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -408,7 +422,7 @@ class AppTests(unittest.TestCase):
                 "books": {
                     "example-series/first-book": {"owned": True, "read": True},
                     "example-series/second-book": {"owned": False, "read": True},
-                    "example-series/aardvark-book": {"owned": False, "read": False},
+                    "example-series/aardvark-book": {"owned": True, "read": False},
                 }
             },
         )
