@@ -1,10 +1,10 @@
-{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% set guards
-= {"title": "Guards! Guards!", "position": 8, "wanted": true, "owned": false,
-"read": true} %} {% set guardian = {"title": "The Last Guardian", "position": 8,
-"wanted": false, "owned": true, "read": true} %} {% set wyrd_sisters = {"title":
-"Wyrd Sisters", "position": 6, "wanted": true, "owned": false, "read": false} %}
-{% set pyramids = {"title": "Pyramids", "position": 7, "wanted": false, "owned":
-true, "read": true} %} {% block title %}Shelfpath · Know what belongs on your
+{% extends "base.html" %}
+{% import "_book_ui.html" as book_ui %}
+{% set guards = {"title": "Guards! Guards!", "position": 8, "wanted": true, "owned": false, "read": false} %}
+{% set guardian = {"title": "The Last Guardian", "position": 8, "wanted": false, "owned": true, "read": true} %}
+{% set wyrd_sisters = {"title": "Wyrd Sisters", "position": 6, "wanted": true, "owned": false, "read": true} %}
+{% set pyramids = {"title": "Pyramids", "position": 7, "wanted": false, "owned": true, "read": false} %}
+{% block title %}Shelfpath · Know what belongs on your
 shelf{% endblock title %} {% block content %}
 <section class="splash-page">
   <div class="splash-hero">
@@ -55,14 +55,14 @@ shelf{% endblock title %} {% block content %}
   <div class="splash-feature-grid">
     <article class="splash-feature">
       <div class="book-row hunting">
-        <span class="book-number">{{ wyrd_sisters.position }}</span>
-        {{ book_ui.cover(wyrd_sisters) }}
+        <span class="book-number">{{ pyramids.position }}</span>
+        {{ book_ui.cover(pyramids) }}
         <div class="book-main">
           <div>
-            <div class="book-title">{{ wyrd_sisters.title }}</div>
-            <div class="book-meta">1988</div>
+            <div class="book-title">{{ pyramids.title }}</div>
+            <div class="book-meta">1989</div>
           </div>
-          {{ book_ui.state_controls(wyrd_sisters) }}
+          {{ book_ui.state_controls(pyramids) }}
         </div>
       </div>
       <h2>Which one to read next?</h2>
@@ -73,14 +73,14 @@ shelf{% endblock title %} {% block content %}
     </article>
     <article class="splash-feature">
       <div class="book-row">
-        <span class="book-number">{{ pyramids.position }}</span>
-        {{ book_ui.cover(pyramids) }}
+        <span class="book-number">{{ wyrd_sisters.position }}</span>
+        {{ book_ui.cover(wyrd_sisters) }}
         <div class="book-main">
           <div>
-            <div class="book-title">{{ pyramids.title }}</div>
-            <div class="book-meta">1989</div>
+            <div class="book-title">{{ wyrd_sisters.title }}</div>
+            <div class="book-meta">1988</div>
           </div>
-          {{ book_ui.state_controls(pyramids) }}
+          {{ book_ui.state_controls(wyrd_sisters) }}
         </div>
       </div>
       <h2>Mark it your way</h2>
