@@ -8,6 +8,8 @@ from urllib.request import Request, urlopen
 
 from playwright.sync_api import expect, sync_playwright
 
+from booksequencer.invitations import create_invitation_token
+
 BASE_URL = os.environ.get("SHELFPATH_E2E_BASE_URL", "http://shelfpath:8731")
 SUPABASE_URL = os.environ.get("SHELFPATH_E2E_SUPABASE_URL", "http://supabase_kong_shelfpath:8000")
 MAILPIT_URL = "http://mailpit:8025"
@@ -71,7 +73,7 @@ class LocalStackE2ETests(unittest.TestCase):
             finally:
                 browser.close()
 
-    def test_owner_can_invite_a_new_user_who_receives_email_and_gets_the_list(self):
+    def test_owner_can_invite_a_new_user_who_receives_email_and_accepts_the_list(self):
         recipient_email = "shared-list-recipient@shelfpath.test"
         recipient_password = "recipient-password"
         with sync_playwright() as playwright:
@@ -81,17 +83,23 @@ class LocalStackE2ETests(unittest.TestCase):
                 owner.goto(f"{BASE_URL}/login?next=/lists")
                 owner.get_by_role("link", name="Manage people").click()
                 expect(owner.get_by_role("heading", name="People")).to_be_visible()
+                list_id = owner.locator('input[name="list_id"]').input_value()
                 owner.get_by_label("Email address").fill(recipient_email)
                 owner.get_by_label("Access").select_option("editor")
                 owner.get_by_role("button", name="Send invite").click()
 
                 expect(owner.get_by_text(f"Invitation sent to {recipient_email}.")).to_be_visible()
-                expect(owner.get_by_text("Invitation pending")).to_be_visible()
                 messages = _json_get(f"{MAILPIT_URL}/api/v1/messages")
                 self.assertIn(recipient_email, json.dumps(messages))
                 self.assertIn("You were invited", json.dumps(messages))
 
                 session = _create_recipient_session(recipient_email, recipient_password)
+                token = create_invitation_token(
+                    list_id,
+                    recipient_email,
+                    "editor",
+                    os.environ["SHELFPATH_INVITATION_TOKEN_SECRET"],
+                )
                 recipient_context = browser.new_context()
                 recipient = recipient_context.new_page()
                 recipient.request.post(f"{BASE_URL}/logout")
@@ -104,9 +112,12 @@ class LocalStackE2ETests(unittest.TestCase):
                     },
                 )
                 self.assertEqual(session_response.status, 200)
-                recipient.goto(f"{BASE_URL}/lists")
+                recipient.goto(f"{BASE_URL}/invite/{list_id}/editor/{token}")
 
-                expect(recipient.get_by_role("heading", name="Lists")).to_be_visible()
+                expect(recipient).to_have_url(f"{BASE_URL}/lists?joined={list_id}")
+                expect(
+                    recipient.get_by_text("You now have access to this shared list.")
+                ).to_be_visible()
                 expect(recipient.get_by_text("Role: editor")).to_be_visible()
                 recipient_context.close()
             finally:

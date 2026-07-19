@@ -19,6 +19,7 @@ services:
       SHELFPATH_SMTP_PORT: 1025
       SHELFPATH_MAIL_FROM: Shelfpath <noreply@shelfpath.test>
       SHELFPATH_PUBLIC_URL: http://127.0.0.1:8731
+      SHELFPATH_INVITATION_TOKEN_SECRET: local-development-invitation-secret
     healthcheck:
       test:
         - CMD

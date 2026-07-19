@@ -585,6 +585,11 @@
         opacity: 0.7;
       }
 
+      .chip-row[data-read-only="True"] .chip {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
       .save-status {
         color: var(--muted);
         font-size: 0.7rem;
@@ -1229,6 +1234,9 @@
 
       for (const chipRow of document.querySelectorAll("[data-status-chips]")) {
         statusSnapshots.set(chipRow, snapshotStatus(chipRow));
+        if (chipRow.dataset.readOnly === "True") {
+          for (const input of statusInputs(chipRow)) input.disabled = true;
+        }
         syncHuntingState(chipRow);
       }
 

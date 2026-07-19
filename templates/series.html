@@ -119,6 +119,7 @@ endblock title %} {% block content %}
               class="chip-row"
               data-book-state-url="{{ url_for('book_state', book_key=book['key']) }}"
               data-status-chips
+              data-read-only="{{ library.current_list.role == 'viewer' }}"
             >
               <label>
                 <input

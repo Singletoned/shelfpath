@@ -90,9 +90,9 @@ With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existi
 
 ## Sharing lists
 
-List owners open **Lists**, choose **Manage people**, then enter an email address and choose **Can update** or **View only**. Shelfpath sends an invitation email. A recipient signs in with that same email address; an account is created when needed and the list appears under **Lists** automatically. Owners can change access, remove people, and see pending invitations from the People screen.
+List owners open **Lists**, choose **Manage people**, then enter an email address and choose **Can update** or **View only**. Shelfpath emails a signed, seven-day invitation link. The recipient opens that link and signs in with the invited email address; only then does Shelfpath grant access and select the shared list. Owners can change an active member’s access or remove them. Stateless invitation links cannot be individually cancelled or tracked before acceptance.
 
-Sending invitations requires SMTP. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, and `SHELFPATH_PUBLIC_URL`. SMTP credentials belong only in Fly.io secrets, never in the repository.
+Sending invitations requires SMTP and `SHELFPATH_INVITATION_TOKEN_SECRET`. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, `SHELFPATH_PUBLIC_URL`, `SHELFPATH_INVITATION_TOKEN_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`. These credentials belong only in Fly.io secrets, never in the repository.
 
 ## Fly.io deployment
 
@@ -107,6 +107,8 @@ OPENAI_API_KEY
 SHELFPATH_SMTP_HOST
 SHELFPATH_SMTP_USERNAME
 SHELFPATH_SMTP_PASSWORD
+SHELFPATH_INVITATION_TOKEN_SECRET
+SUPABASE_SERVICE_ROLE_KEY
 ```
 
 `fly.toml` holds non-secret production settings, including the Supabase URL, public Shelfpath URL, mail sender, and SMTP port. Do not add secrets to it. Configure `FLY_API_TOKEN` as a GitHub Actions repository secret for automated deploys.

@@ -16,6 +16,11 @@ from booksequencer.auth import current_user, fresh_user, redirect_to_login, veri
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
 from booksequencer.covers import COVER_ROOT, STATIC_ROOT
 from booksequencer.email import InvitationEmailSender
+from booksequencer.invitations import (
+    InvitationTokenError,
+    create_invitation_token,
+    verify_invitation_token,
+)
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
@@ -94,7 +99,11 @@ async def lists_get(request):
         return redirect_to_login(request)
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
-    return templates.TemplateResponse(request, "lists.html", _context(request, library=library))
+    return templates.TemplateResponse(
+        request,
+        "lists.html",
+        _context(request, library=library, joined=request.query_params.get("joined")),
+    )
 
 
 async def suggest_get(request):
@@ -235,21 +244,50 @@ async def list_share_post(request):
     role = form.get("role", "editor")
     if not isinstance(list_id, str) or not list_id:
         raise ValueError("list_id is required.")
-    if not isinstance(email, str):
+    if not isinstance(email, str) or not email.strip():
         raise ValueError("email is required.")
     if not isinstance(role, str):
         raise ValueError("role is required.")
     sender = request.app.state.invitation_email_sender
+    secret = request.app.state.settings.invitation_token_secret
     if sender is None:
         raise ValueError("SHELFPATH_SMTP_HOST must be configured before sending invitations.")
+    if secret is None:
+        raise ValueError(
+            "SHELFPATH_INVITATION_TOKEN_SECRET must be configured before sending invitations."
+        )
     people = await request.app.state.store.get_list_people(user, list_id)
-    await request.app.state.store.share_list(user, list_id, email, role)
-    await sender.send_list_invitation(email.strip().lower(), people["list"]["name"], role)
+    normalized_email = email.strip().lower()
+    token = create_invitation_token(list_id, normalized_email, role, secret)
+    invitation_url = _invitation_url(request.app.state.settings.public_url, list_id, role, token)
+    await sender.send_list_invitation(
+        normalized_email, people["list"]["name"], role, invitation_url
+    )
     request.session[ACTIVE_LIST_SESSION_KEY] = list_id
     return RedirectResponse(
-        f"/lists/{list_id}/people?invited={quote(email.strip().lower())}",
+        f"/lists/{list_id}/people?invited={quote(normalized_email)}",
         status_code=HTTP_SEE_OTHER,
     )
+
+
+async def invitation_get(request):
+    user = await _user_for_request(request)
+    if _requires_auth(request.app, user):
+        return redirect_to_login(request)
+    email = user.get("email") if isinstance(user, dict) else None
+    secret = request.app.state.settings.invitation_token_secret
+    if not isinstance(email, str) or secret is None:
+        return _invitation_error(request, "This invitation link is no longer valid.")
+    list_id = request.path_params["list_id"]
+    role = request.path_params["role"]
+    token = request.path_params["token"]
+    try:
+        verify_invitation_token(list_id, email, role, token, secret)
+    except InvitationTokenError as error:
+        return _invitation_error(request, str(error))
+    await request.app.state.store.accept_list_invitation(user, list_id, role)
+    request.session[ACTIVE_LIST_SESSION_KEY] = list_id
+    return RedirectResponse(f"/lists?joined={quote(list_id)}", status_code=HTTP_SEE_OTHER)
 
 
 async def list_person_update_post(request):
@@ -262,7 +300,7 @@ async def list_person_update_post(request):
     role = form.get("role")
     if not isinstance(list_id, str) or not isinstance(email, str) or not isinstance(role, str):
         raise ValueError("list_id, email, and role are required.")
-    await request.app.state.store.share_list(user, list_id, email, role)
+    await request.app.state.store.update_list_person_role(user, list_id, email, role)
     return RedirectResponse(f"/lists/{list_id}/people", status_code=HTTP_SEE_OTHER)
 
 
@@ -358,6 +396,7 @@ async def series_state_post(request):
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     series_id = request.path_params["series_id"]
+    await _require_active_list_editor(request, user)
     form = await request.form()
     book_keys = form.getlist("book_key")
     owned_keys = set(form.getlist("owned"))
@@ -393,6 +432,7 @@ async def book_state_post(request):
     if _requires_auth(request.app, user):
         return redirect_to_login(request)
     book_key = request.path_params["book_key"]
+    await _require_active_list_editor(request, user)
     form = await request.form()
     await request.app.state.store.save_book_state(
         user,
@@ -433,6 +473,12 @@ def create_app(
             Route("/lists", lists_get, methods=("GET",), name="lists"),
             Route("/lists/select", list_select_post, methods=("POST",), name="list_select"),
             Route("/lists/share", list_share_post, methods=("POST",), name="list_share"),
+            Route(
+                "/invite/{list_id}/{role}/{token}",
+                invitation_get,
+                methods=("GET",),
+                name="invitation",
+            ),
             Route("/lists/{list_id}/people", list_people_get, methods=("GET",), name="list_people"),
             Route(
                 "/lists/{list_id}/people/update",
@@ -522,7 +568,6 @@ def _invitation_email_sender(settings: Settings) -> InvitationEmailSender | None
         settings.smtp_username,
         settings.smtp_password,
         settings.mail_from,
-        settings.public_url,
     )
 
 
@@ -556,10 +601,38 @@ def _active_list_id(request) -> str | None:
     return None
 
 
+async def _require_active_list_editor(request, user) -> None:
+    active_list_id = _active_list_id(request)
+    lists = await request.app.state.store.list_lists(user)
+    active_list = _select_active_list(lists, active_list_id)
+    if active_list["role"] not in {"owner", "editor"}:
+        raise PermissionError("View-only list members cannot update book status.")
+
+
+def _select_active_list(lists, active_list_id):
+    if active_list_id:
+        for book_list in lists:
+            if book_list["id"] == active_list_id:
+                return book_list
+    if not lists:
+        raise ValueError("User has no accessible lists.")
+    return lists[0]
+
+
 def _remember_active_list(request, library) -> None:
     current_list = library.get("current_list")
     if isinstance(current_list, dict) and isinstance(current_list.get("id"), str):
         request.session[ACTIVE_LIST_SESSION_KEY] = current_list["id"]
+
+
+def _invitation_url(public_url: str, list_id: str, role: str, token: str) -> str:
+    return f"{public_url.rstrip('/')}/invite/{quote(list_id)}/{quote(role)}/{quote(token)}"
+
+
+def _invitation_error(request, message: str):
+    return templates.TemplateResponse(
+        request, "invitation_error.html", _context(request, message=message), status_code=400
+    )
 
 
 def _safe_next(value) -> str:

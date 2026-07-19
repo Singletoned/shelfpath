@@ -162,6 +162,36 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(store.loaded_user_id, "00000000-0000-0000-0000-000000000002")
 
+    def test_invitation_grants_the_signed_in_recipient_access(self):
+        settings = self._settings(Path("unused"), storage="supabase").__class__(
+            **{
+                **self._settings(Path("unused"), storage="supabase").__dict__,
+                "local_auth_email": "reader@example.test",
+                "local_auth_password": "local-password",
+                "supabase_service_role_key": "service-role-key",
+            }
+        )
+        store = InvitationStore()
+        client = TestClient(app_module.create_app(settings=settings, store=store))
+        token = app_module.create_invitation_token(
+            "00000000-0000-0000-0000-000000000001",
+            "reader@example.test",
+            "editor",
+            settings.invitation_token_secret,
+        )
+
+        response = client.get(
+            f"/invite/00000000-0000-0000-0000-000000000001/editor/{token}",
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 303)
+        self.assertEqual(
+            response.headers["location"],
+            "/lists?joined=00000000-0000-0000-0000-000000000001",
+        )
+        self.assertEqual(store.accepted, ("00000000-0000-0000-0000-000000000001", "editor"))
+
     def test_home_series_card_is_a_single_full_card_link(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)
@@ -350,6 +380,7 @@ class AppTests(unittest.TestCase):
             smtp_password=None,
             mail_from="Shelfpath <noreply@example.test>",
             public_url="http://testserver",
+            invitation_token_secret="invitation-test-secret",
         )
 
     def _write_data(self, data_dir: Path) -> None:
@@ -406,6 +437,15 @@ class LocalAuthStore:
     async def load_library(self, user, list_id=None):
         self.loaded_user_id = user["id"]
         return {"current_list": None, "lists": [], "series": [], "warnings": []}
+
+
+class InvitationStore(LocalAuthStore):
+    def __init__(self):
+        super().__init__()
+        self.accepted = None
+
+    async def accept_list_invitation(self, user, list_id, role):
+        self.accepted = (list_id, role)
 
 
 class FailingStore:

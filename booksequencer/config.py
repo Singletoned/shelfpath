@@ -31,6 +31,7 @@ class Settings:
     smtp_password: str | None
     mail_from: str
     public_url: str
+    invitation_token_secret: str | None
 
 
 def load_settings() -> Settings:
@@ -56,6 +57,7 @@ def load_settings() -> Settings:
         smtp_password=_optional_env("SHELFPATH_SMTP_PASSWORD"),
         mail_from=os.environ.get("SHELFPATH_MAIL_FROM", "Shelfpath <noreply@shelfpath.app>"),
         public_url=os.environ.get("SHELFPATH_PUBLIC_URL", "https://shelfpath.app"),
+        invitation_token_secret=_optional_env("SHELFPATH_INVITATION_TOKEN_SECRET"),
     )
 
 

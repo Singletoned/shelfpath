@@ -4,6 +4,9 @@
 <p class="muted">
   Choose which collecting list you are updating, or share a list you own.
 </p>
+{% if joined %}
+<p class="notice">You now have access to this shared list.</p>
+{% endif %}
 
 <ul class="cards">
   {% for book_list in library.lists %}

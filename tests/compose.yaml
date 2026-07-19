@@ -20,6 +20,7 @@ services:
       SHELFPATH_SMTP_PORT: 1025
       SHELFPATH_MAIL_FROM: Shelfpath <noreply@shelfpath.test>
       SHELFPATH_PUBLIC_URL: http://shelfpath:8731
+      SHELFPATH_INVITATION_TOKEN_SECRET: local-e2e-invitation-secret
     healthcheck:
       test:
         - CMD
@@ -66,6 +67,7 @@ services:
     environment:
       SHELFPATH_E2E_BASE_URL: http://shelfpath:8731
       SHELFPATH_E2E_SUPABASE_URL: http://supabase_kong_shelfpath:8000
+      SHELFPATH_INVITATION_TOKEN_SECRET: local-e2e-invitation-secret
     env_file:
       - ../local-supabase.env
     networks:

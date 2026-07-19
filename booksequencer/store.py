@@ -19,12 +19,16 @@ class Store(Protocol):
 
     async def list_lists(self, user: dict[str, Any] | None) -> list[dict[str, Any]]: ...
 
-    async def share_list(
+    async def update_list_person_role(
         self,
         user: dict[str, Any] | None,
         list_id: str,
         email: str,
         role: str,
+    ) -> None: ...
+
+    async def accept_list_invitation(
+        self, user: dict[str, Any] | None, list_id: str, role: str
     ) -> None: ...
 
     async def get_list_people(
@@ -95,12 +99,17 @@ class FileStore:
     async def list_lists(self, user: dict[str, Any] | None) -> list[dict[str, Any]]:
         return [_file_list()]
 
-    async def share_list(
+    async def update_list_person_role(
         self,
         user: dict[str, Any] | None,
         list_id: str,
         email: str,
         role: str,
+    ) -> None:
+        raise ValueError("Shared lists require Supabase storage.")
+
+    async def accept_list_invitation(
+        self, user: dict[str, Any] | None, list_id: str, role: str
     ) -> None:
         raise ValueError("Shared lists require Supabase storage.")
 
@@ -217,7 +226,7 @@ class SupabaseStore:
             )
         return [_membership_list(membership, current_user["id"]) for membership in memberships]
 
-    async def share_list(
+    async def update_list_person_role(
         self,
         user: dict[str, Any] | None,
         list_id: str,
@@ -233,12 +242,25 @@ class SupabaseStore:
         await self._request(
             current_user,
             "POST",
-            "/rest/v1/rpc/add_list_member_by_email",
+            "/rest/v1/rpc/set_list_member_role_by_email",
             json={
                 "target_list_id": list_id,
                 "member_email": normalized_email,
                 "member_role": role,
             },
+        )
+
+    async def accept_list_invitation(
+        self, user: dict[str, Any] | None, list_id: str, role: str
+    ) -> None:
+        current_user = _require_user(user)
+        if role not in {"editor", "viewer"}:
+            raise ValueError("Invitation role must be editor or viewer.")
+        await self._service_request(
+            "POST",
+            "/rest/v1/list_members?on_conflict=list_id,user_id",
+            json={"list_id": list_id, "user_id": current_user["id"], "role": role},
+            extra_headers={"Prefer": "resolution=merge-duplicates"},
         )
 
     async def get_list_people(self, user: dict[str, Any] | None, list_id: str) -> dict[str, Any]:
@@ -507,6 +529,7 @@ class SupabaseStore:
         method: str,
         path: str,
         json: Any | None = None,
+        extra_headers: dict[str, str] | None = None,
     ) -> Any:
         if not self.service_role_key:
             raise ValueError("SUPABASE_SERVICE_ROLE_KEY is required for service requests.")
@@ -514,6 +537,8 @@ class SupabaseStore:
             "apikey": self.service_role_key,
             "Authorization": f"Bearer {self.service_role_key}",
         }
+        if extra_headers:
+            headers.update(extra_headers)
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.request(
                 method,
