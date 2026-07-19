@@ -1,71 +1,5 @@
-{% extends "base.html" %} {% macro state_controls(book) %}
-<form
-  class="chip-row"
-  data-book-state-url="{{ url_for('book_state', book_key=book['key']) }}"
-  data-status-chips
-  data-read-only="{{ library.current_list.role == 'viewer' }}"
-  method="post"
-  action="{{ url_for('book_state', book_key=book['key']) }}?next={{ url_for('shop') }}"
->
-  <label>
-    <input
-      class="chip-input"
-      data-status="wanted"
-      type="checkbox"
-      name="wanted"
-      {%
-      if
-      book.wanted
-      %}checked{%
-      endif
-      %}
-    />
-    <span class="chip want">WANT</span>
-  </label>
-  <label>
-    <input
-      class="chip-input"
-      data-status="owned"
-      type="checkbox"
-      name="owned"
-      {%
-      if
-      book.owned
-      %}checked{%
-      endif
-      %}
-    />
-    <span class="chip own">OWN</span>
-  </label>
-  <label>
-    <input
-      class="chip-input"
-      data-status="read"
-      type="checkbox"
-      name="read"
-      {%
-      if
-      book.read
-      %}checked{%
-      endif
-      %}
-    />
-    <span class="chip read">READ</span>
-  </label>
-  <span class="save-status" aria-live="polite" data-save-status></span>
-</form>
-{% endmacro %} {% macro cover(book) %} {% if book.cover_url %}
-<img
-  class="cover"
-  src="{{ book.cover_url }}"
-  alt="Cover of {{ book.title }}"
-  loading="lazy"
-  onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
-/>
-{% else %}
-<div class="cover-placeholder" aria-label="No cover available">cover</div>
-{% endif %} {% endmacro %} {% block title %}Shop check · Shelfpath{% endblock
-title %} {% block content %}
+{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% block title
+%}Shop check · Shelfpath{% endblock title %} {% block content %}
 <section class="shop-page">
   <h2>Shop check</h2>
   <form class="shop-search-form" method="get" action="{{ url_for('shop') }}">
@@ -92,7 +26,7 @@ title %} {% block content %}
       list{% endif %}
     </p>
     <div class="shop-verdict-body">
-      {{ cover(top_match.book) }}
+      {{ book_ui.cover(top_match.book) }}
       <div>
         <p class="shop-position">
           #{{ top_match.book.position }} of {{ top_match.series.book_count }}
@@ -103,7 +37,9 @@ title %} {% block content %}
           top_match.book.author != top_match.series.author %} · {{
           top_match.book.author }}{% endif %}
         </p>
-        {{ state_controls(top_match.book) }}
+        {{ book_ui.state_controls(top_match.book, url_for('book_state',
+        book_key=top_match.book['key']), url_for('shop'),
+        library.current_list.role == 'viewer') }}
       </div>
     </div>
   </article>
@@ -113,7 +49,7 @@ title %} {% block content %}
     <h3>Other matches</h3>
     {% for match in shop_matches[1:] %}
     <article class="shop-book">
-      {{ cover(match.book) }}
+      {{ book_ui.cover(match.book) }}
       <div>
         <div class="book-title" style="color: var(--cream)">
           #{{ match.book.position }} {{ match.book.title }}
@@ -122,7 +58,9 @@ title %} {% block content %}
           {{ match.series.title }}{% if match.book.author and match.book.author
           != match.series.author %} · {{ match.book.author }}{% endif %}
         </div>
-        {{ state_controls(match.book) }}
+        {{ book_ui.state_controls(match.book, url_for('book_state',
+        book_key=match.book['key']), url_for('shop'), library.current_list.role
+        == 'viewer') }}
       </div>
     </article>
     {% endfor %}
@@ -145,7 +83,7 @@ title %} {% block content %}
     <p class="faint">{{ series.author }}</p>
     {% endif %} {% for book in wanted_books %}
     <article class="shop-book">
-      {{ cover(book) }}
+      {{ book_ui.cover(book) }}
       <div>
         <div class="book-title" style="color: var(--cream)">
           #{{ book.position }} {{ book.title }}
@@ -154,7 +92,9 @@ title %} {% block content %}
           {{ series.title }}{% if book.author and book.author != series.author
           %} · {{ book.author }}{% endif %}
         </div>
-        {{ state_controls(book) }}
+        {{ book_ui.state_controls(book, url_for('book_state',
+        book_key=book['key']), url_for('shop'), library.current_list.role ==
+        'viewer') }}
       </div>
     </article>
     {% endfor %}

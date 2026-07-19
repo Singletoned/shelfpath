@@ -67,6 +67,9 @@ class AppTests(unittest.TestCase):
         self.assertIn("Know whether to buy it", response.text)
         self.assertIn("Sign in or create an account", response.text)
         self.assertIn('id="login-form"', response.text)
+        self.assertIn('class="shop-verdict wanted"', response.text)
+        self.assertIn('class="shop-book"', response.text)
+        self.assertIn('class="book-row hunting"', response.text)
 
     def test_login_page_uses_a_constrained_spaced_form(self):
         settings = self._settings(Path("unused"), storage="supabase")

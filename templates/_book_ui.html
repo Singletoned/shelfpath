@@ -1,0 +1,123 @@
+{% macro cover(book) %} {% if book.cover_url %}
+<img
+  class="cover"
+  src="{{ book.cover_url }}"
+  alt="Cover of {{ book.title }}"
+  loading="lazy"
+  onerror="this.onerror=null; this.src='{{ book.remote_cover_url }}';"
+/>
+{% else %}
+<div class="cover-placeholder" aria-label="No cover available">cover</div>
+{% endif %} {% endmacro %} {% macro state_controls(book, state_url=None,
+next_url=None, read_only=False) %}
+<form
+  class="chip-row"
+  {%
+  if
+  state_url
+  %}
+  data-book-state-url="{{ state_url }}"
+  data-status-chips
+  data-read-only="{{ read_only }}"
+  method="post"
+  action="{{ state_url }}?next={{ next_url }}"
+  {%
+  else
+  %}
+  aria-label="Example book status"
+  {%
+  endif
+  %}
+>
+  <label>
+    <input
+      class="chip-input"
+      {%
+      if
+      state_url
+      %}data-status="wanted"
+      {%
+      endif
+      %}
+      type="checkbox"
+      name="wanted"
+      {%
+      if
+      book.wanted
+      %}checked{%
+      endif
+      %}
+      {%
+      if
+      not
+      state_url
+      %}disabled{%
+      endif
+      %}
+    />
+    <span class="chip want">WANT</span>
+  </label>
+  <label>
+    <input
+      class="chip-input"
+      {%
+      if
+      state_url
+      %}data-status="owned"
+      {%
+      endif
+      %}
+      type="checkbox"
+      name="owned"
+      {%
+      if
+      book.owned
+      %}checked{%
+      endif
+      %}
+      {%
+      if
+      not
+      state_url
+      %}disabled{%
+      endif
+      %}
+    />
+    <span class="chip own">OWN</span>
+  </label>
+  <label>
+    <input
+      class="chip-input"
+      {%
+      if
+      state_url
+      %}data-status="read"
+      {%
+      endif
+      %}
+      type="checkbox"
+      name="read"
+      {%
+      if
+      book.read
+      %}checked{%
+      endif
+      %}
+      {%
+      if
+      not
+      state_url
+      %}disabled{%
+      endif
+      %}
+    />
+    <span class="chip read">READ</span>
+  </label>
+  {% if state_url %}<span
+    class="save-status"
+    aria-live="polite"
+    data-save-status
+  ></span
+  >{% endif %}
+</form>
+{% endmacro %}

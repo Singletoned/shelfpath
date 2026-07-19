@@ -1013,6 +1013,34 @@
         white-space: nowrap;
       }
 
+      .splash-shop-demo {
+        align-self: center;
+        background: var(--ink);
+        border-radius: 1.5rem;
+        color: var(--cream);
+        display: grid;
+        gap: 1rem;
+        padding: 1.35rem;
+      }
+
+      .splash-shop-demo .shop-verdict,
+      .splash-shop-demo .shop-book {
+        margin: 0;
+      }
+
+      .splash-shop-demo .shop-book .book-title {
+        color: var(--cream);
+      }
+
+      .splash-shop-demo .shop-book .book-meta {
+        color: var(--faint);
+      }
+
+      .splash-shop-demo .chip,
+      .splash-feature .chip {
+        cursor: default;
+      }
+
       .splash-feature-grid {
         display: grid;
         gap: 1rem;
@@ -1065,6 +1093,11 @@
 
       .feature-chips {
         display: none;
+      }
+
+      .splash-feature .book-row {
+        border: 1.5px solid var(--line);
+        border-radius: 0.7rem;
       }
 
       .splash-feature h2 {

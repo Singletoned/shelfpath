@@ -1,13 +1,19 @@
-{% extends "base.html" %} {% block title %}Shelfpath · Know what belongs on your
+{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% set guards
+= {"title": "Guards! Guards!", "position": 8, "wanted": true, "owned": false,
+"read": true} %} {% set guardian = {"title": "The Last Guardian", "position": 8,
+"wanted": false, "owned": true, "read": true} %} {% set wyrd_sisters = {"title":
+"Wyrd Sisters", "position": 6, "wanted": true, "owned": false, "read": false} %}
+{% set pyramids = {"title": "Pyramids", "position": 7, "wanted": false, "owned":
+true, "read": true} %} {% block title %}Shelfpath · Know what belongs on your
 shelf{% endblock title %} {% block content %}
 <section class="splash-page">
   <div class="splash-hero">
-    <p class="overline">YOUR BOOKS, IN ORDER</p>
-    <h1>Know whether to buy it before you leave the shop.</h1>
+    <p class="overline">Track the gaps in your shelf</p>
+    <h1>Know whether to buy it before you leave the shop</h1>
     <p class="splash-lede">
-      You’re holding book something-or-other of a series you half-own. Shelfpath
-      answers in seconds: what number it is, and whether it’s already on your
-      shelf.
+      You’re in a charity shop holding a book from a series you collect but
+      can't remember if you have it yet. Shelfpath can tell you in seconds
+      whether it’s already on your shelf.
     </p>
     <p class="splash-action">
       <a class="splash-cta" href="#sign-in">Start your shelf</a>
@@ -15,54 +21,67 @@ shelf{% endblock title %} {% block content %}
     </p>
   </div>
 
-  <div class="shop-demo" aria-label="Example Shelfpath shop check result">
-    <div class="shop-demo-search">
-      <span aria-hidden="true">⌕</span> guards gua<span class="demo-caret"
-        >|</span
-      >
+  <section
+    class="splash-shop-demo"
+    aria-label="Example Shelfpath shop check result"
+  >
+    <div class="shop-search">
+      ⌕&nbsp; guards gua<span class="demo-caret">|</span>
     </div>
-    <div class="shop-demo-result shop-demo-wanted">
-      <div class="demo-cover" aria-hidden="true"></div>
-      <div class="shop-demo-copy">
-        <strong>WANTED</strong>
-        <b>Guards! Guards!</b>
-        <span>Discworld · Terry Pratchett</span>
-        <em>Buy it — you don't own this one.</em>
+    <article class="shop-verdict wanted">
+      <p class="overline">Wanted · buy it</p>
+      <div class="shop-verdict-body">
+        {{ book_ui.cover(guards) }}
+        <div>
+          <p class="shop-position">#{{ guards.position }} of 41</p>
+          <h3>{{ guards.title }}</h3>
+          <p class="book-meta">Discworld · Terry Pratchett</p>
+          {{ book_ui.state_controls(guards) }}
+        </div>
       </div>
-      <span class="demo-number">#8 OF 41</span>
-    </div>
-    <div class="shop-demo-result shop-demo-owned">
-      <div class="demo-cover dark" aria-hidden="true"></div>
-      <div class="shop-demo-copy">
-        <b>The Last Guardian</b>
-        <span>Artemis Fowl #8 · Eoin Colfer</span>
+    </article>
+    <article class="shop-book">
+      {{ book_ui.cover(guardian) }}
+      <div>
+        <div class="book-title">
+          #{{ guardian.position }} {{ guardian.title }}
+        </div>
+        <div class="book-meta">Artemis Fowl · Eoin Colfer</div>
+        {{ book_ui.state_controls(guardian) }}
       </div>
-      <span class="demo-number">OWNED · SKIP</span>
-    </div>
-  </div>
+    </article>
+  </section>
 
   <div class="splash-feature-grid">
     <article class="splash-feature">
-      <div class="feature-row">
-        <span class="feature-position">6</span
-        ><span class="demo-cover" aria-hidden="true"></span>
-        <span><strong>Wyrd Sisters</strong><small>1988</small></span>
-        <span class="feature-chips"><i>WANT</i><i>OWN</i><i>READ</i></span>
+      <div class="book-row hunting">
+        <span class="book-number">{{ wyrd_sisters.position }}</span>
+        {{ book_ui.cover(wyrd_sisters) }}
+        <div class="book-main">
+          <div>
+            <div class="book-title">{{ wyrd_sisters.title }}</div>
+            <div class="book-meta">1988</div>
+          </div>
+          {{ book_ui.state_controls(wyrd_sisters) }}
+        </div>
       </div>
-      <h2>Find the number</h2>
+      <h2>Which one to read next?</h2>
       <p>
-        Every series in reading or publication order, so you know exactly where
-        a book belongs.
+        Every series in reading or publication order, so you know which one to
+        read next.
       </p>
     </article>
     <article class="splash-feature">
-      <div class="feature-row">
-        <span class="feature-position">7</span
-        ><span class="demo-cover" aria-hidden="true"></span>
-        <span><strong>Pyramids</strong><small>1989</small></span>
-        <span class="feature-chips selected"
-          ><i>WANT</i><i>OWN</i><i>READ</i></span
-        >
+      <div class="book-row">
+        <span class="book-number">{{ pyramids.position }}</span>
+        {{ book_ui.cover(pyramids) }}
+        <div class="book-main">
+          <div>
+            <div class="book-title">{{ pyramids.title }}</div>
+            <div class="book-meta">1989</div>
+          </div>
+          {{ book_ui.state_controls(pyramids) }}
+        </div>
       </div>
       <h2>Mark it your way</h2>
       <p>
@@ -71,18 +90,20 @@ shelf{% endblock title %} {% block content %}
       </p>
     </article>
     <article class="splash-feature">
-      <div class="feature-row">
-        <span class="feature-position">8</span
-        ><span class="demo-cover" aria-hidden="true"></span>
-        <span><strong>Guards! Guards!</strong><small>1989</small></span>
-        <span class="feature-chips wanted"
-          ><i>WANT</i><i>OWN</i><i>READ</i></span
-        >
+      <div class="book-row hunting">
+        <span class="book-number">{{ guards.position }}</span>
+        {{ book_ui.cover(guards) }}
+        <div class="book-main">
+          <div>
+            <div class="book-title">{{ guards.title }}</div>
+            <div class="book-meta">1989</div>
+          </div>
+          {{ book_ui.state_controls(guards) }}
+        </div>
       </div>
-      <h2>Shop with someone</h2>
+      <h2>Share with friends</h2>
       <p>
-        Two people can keep one collecting list — set it up once, then see the
-        same shelf.
+        Multiple people can keep one collecting list — if friends are buying.
       </p>
     </article>
   </div>
