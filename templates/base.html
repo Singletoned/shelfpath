@@ -353,8 +353,13 @@
         gap: 0.8rem;
       }
 
+      .shelf-layout {
+        display: grid;
+        gap: 2rem;
+      }
+
       .next-up {
-        margin-bottom: 2rem;
+        min-width: 0;
       }
 
       .section-heading {
@@ -380,8 +385,30 @@
         overflow: hidden;
       }
 
+      .next-up-list .book-row {
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+        padding: 0.65rem 0.75rem;
+      }
+
       .next-up-list .book-row:last-child {
         border-bottom: 0;
+      }
+
+      .next-up-list .cover,
+      .next-up-list .cover-placeholder {
+        width: 2.5rem;
+      }
+
+      .next-up-list .book-main {
+        min-height: 3.85rem;
+      }
+
+      .next-up-list .chip-row {
+        margin-top: 0.1rem;
+      }
+
+      .next-up-list .chip-row label {
+        min-height: 2rem;
       }
 
       .book-title a {
@@ -1302,6 +1329,23 @@
       }
 
       @media (min-width: 760px) {
+        .shelf-layout {
+          align-items: start;
+          grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+        }
+
+        .next-up {
+          grid-column: 2;
+          grid-row: 1;
+          position: sticky;
+          top: 1rem;
+        }
+
+        .shelf-series {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
         .splash-page {
           grid-template-columns: minmax(0, 1.15fr) minmax(23rem, 0.85fr);
           margin-top: 4.5rem;

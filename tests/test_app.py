@@ -207,9 +207,14 @@ class AppTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertIn("Next up", response.text)
-            self.assertIn("Books you own and have not read", response.text)
+            self.assertIn("Ready to read", response.text)
             self.assertIn("Aardvark Book", response.text)
-            self.assertIn('class="next-up-list"', response.text)
+            next_up_html = response.text.split('class="next-up-list"', maxsplit=1)[1].split(
+                "</aside>", maxsplit=1
+            )[0]
+            self.assertIn('name="read"', next_up_html)
+            self.assertNotIn('name="wanted"', next_up_html)
+            self.assertNotIn('name="owned"', next_up_html)
 
     def test_home_series_card_is_a_single_full_card_link(self):
         with tempfile.TemporaryDirectory() as temp_dir:
