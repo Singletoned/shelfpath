@@ -4,6 +4,13 @@ services:
   shelfpath:
     build:
       context: ..
+    command:
+      - /opt/shelfpath-venv/bin/uvicorn
+      - app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8731"
     env_file:
       - ../local-supabase.env
     environment:

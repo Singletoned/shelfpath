@@ -10,4 +10,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-CMD ["/opt/shelfpath-venv/bin/uvicorn", "app:app", "--reload", "--host", "0.0.0.0", "--port", "8731"]
+COPY . .
+RUN uv sync --frozen --no-dev
+
+CMD ["/opt/shelfpath-venv/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]

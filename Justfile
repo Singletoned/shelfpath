@@ -69,3 +69,9 @@ ai-allow email:
     PYTHONPATH=. uv run --env-file .env python scripts/allow_ai_suggestion_user.py {{ email }}
 
 supabase-deploy: db-push catalogue-import
+
+fly-deploy:
+    flyctl deploy
+
+fly-status:
+    flyctl status

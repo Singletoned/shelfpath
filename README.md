@@ -86,13 +86,30 @@ SHELFPATH_LOCAL_AUTH_EMAIL=you@example.com
 SUPABASE_SERVICE_ROLE_KEY=<secret key>
 ```
 
-With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existing Supabase user and redirects immediately. After signing out, the sign-in page offers **Sign in as local test user** so you can test the local sign-in flow without email. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Render.
+With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existing Supabase user and redirects immediately. After signing out, the sign-in page offers **Sign in as local test user** so you can test the local sign-in flow without email. This bypass is deliberately local/debug-only and requires the service-role key; do not configure it in Fly.io.
 
 ## Sharing lists
 
 List owners open **Lists**, choose **Manage people**, then enter an email address and choose **Can update** or **View only**. Shelfpath sends an invitation email. A recipient signs in with that same email address; an account is created when needed and the list appears under **Lists** automatically. Owners can change access, remove people, and see pending invitations from the People screen.
 
-Sending invitations requires SMTP. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, and `SHELFPATH_PUBLIC_URL`. SMTP credentials belong only in Render environment settings, never in the repository.
+Sending invitations requires SMTP. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, and `SHELFPATH_PUBLIC_URL`. SMTP credentials belong only in Fly.io secrets, never in the repository.
+
+## Fly.io deployment
+
+`fly.toml` is the committed production configuration. The production container listens on port 8080 and Fly checks `GET /health`. Deploy manually with `just fly-deploy`; GitHub deploys `main` automatically through `.github/workflows/fly.yml`.
+
+Set these Fly secrets before the first deploy:
+
+```text
+SHELFPATH_SESSION_SECRET
+SUPABASE_PUBLISHABLE_KEY
+OPENAI_API_KEY
+SHELFPATH_SMTP_HOST
+SHELFPATH_SMTP_USERNAME
+SHELFPATH_SMTP_PASSWORD
+```
+
+`fly.toml` holds non-secret production settings, including the Supabase URL, public Shelfpath URL, mail sender, and SMTP port. Do not add secrets to it. Configure `FLY_API_TOKEN` as a GitHub Actions repository secret for automated deploys.
 
 ## Supabase setup
 
