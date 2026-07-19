@@ -92,6 +92,11 @@
         gap: 0.5rem;
       }
 
+      .splash-body .site-header-inner,
+      .splash-body main {
+        max-width: 112rem;
+      }
+
       .top-nav {
         align-items: center;
         display: flex;
@@ -128,6 +133,14 @@
       nav a.active,
       nav a:hover {
         color: var(--cream);
+      }
+
+      nav a.splash-sign-in {
+        background: var(--cream);
+        border-radius: 999px;
+        color: var(--ink);
+        margin-left: auto;
+        padding: 0.65rem 1.15rem;
       }
 
       .header-search {
@@ -839,59 +852,240 @@
       .splash-page {
         display: grid;
         gap: 2.5rem;
-        margin: 1.5rem 0 2rem;
-      }
-
-      .splash-hero {
-        max-width: 42rem;
+        margin: 2.8rem 0 4rem;
       }
 
       .splash-hero h1 {
-        font-size: clamp(2.4rem, 8vw, 4.8rem);
-        letter-spacing: -0.055em;
-        line-height: 0.98;
-        margin: 0.55rem 0 1.15rem;
+        font-size: clamp(2.8rem, 6vw, 5.5rem);
+        letter-spacing: -0.065em;
+        line-height: 0.95;
+        margin: 0.75rem 0 1.4rem;
+        max-width: 44rem;
       }
 
       .splash-lede {
         color: var(--muted);
-        font-size: 1.1rem;
-        line-height: 1.55;
+        font-size: clamp(1.05rem, 1.55vw, 1.35rem);
+        line-height: 1.48;
         margin: 0;
-        max-width: 36rem;
+        max-width: 38rem;
       }
 
-      .splash-points {
-        border-top: 1.5px solid var(--strong-line);
+      .splash-action {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        font-weight: 800;
+        gap: 0.85rem 1.2rem;
+        margin: 2rem 0 0;
+      }
+
+      .splash-cta {
+        background: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 999px;
+        color: var(--cream);
+        min-height: 3.25rem;
+        padding: 0.85rem 1.45rem;
+        text-decoration: none;
+      }
+
+      .splash-cta:hover {
+        background: var(--orange);
+        border-color: var(--orange);
+      }
+
+      .splash-action span {
+        color: var(--faint);
+      }
+
+      .shop-demo {
+        align-self: center;
+        background: var(--ink);
+        border-radius: 1.5rem;
         display: grid;
-        gap: 0;
-        margin: 2.25rem 0 0;
+        gap: 1rem;
+        padding: 1.35rem;
       }
 
-      .splash-points div {
-        border-bottom: 1.5px solid var(--line);
-        padding: 0.85rem 0;
+      .shop-demo-search {
+        background: var(--cream);
+        border-radius: 0.7rem;
+        color: var(--ink);
+        font-size: 1rem;
+        font-weight: 800;
+        padding: 0.85rem 1rem;
       }
 
-      .splash-points dt {
-        font-size: 0.92rem;
+      .shop-demo-search span {
+        color: var(--muted);
+        font-size: 1.5rem;
+        line-height: 0;
+        margin-right: 0.55rem;
+      }
+
+      .demo-caret {
+        color: var(--orange);
+      }
+
+      .shop-demo-result {
+        align-items: center;
+        border: 1.5px solid var(--dark-line);
+        border-radius: 0.85rem;
+        display: grid;
+        gap: 0.8rem;
+        grid-template-columns: 3rem minmax(0, 1fr) auto;
+        padding: 1rem;
+      }
+
+      .shop-demo-wanted {
+        background: var(--orange);
+        border-color: var(--orange);
+        color: var(--cream);
+      }
+
+      .shop-demo-owned {
+        background: var(--dark-card);
+        color: var(--cream);
+      }
+
+      .demo-cover {
+        background: repeating-linear-gradient(
+          45deg,
+          #e4dec9 0,
+          #e4dec9 0.3rem,
+          #f8f2e2 0.3rem,
+          #f8f2e2 0.6rem
+        );
+        border: 1px solid rgba(23, 19, 12, 0.1);
+        border-radius: 0.35rem;
+        display: block;
+        height: 4.2rem;
+        width: 3rem;
+      }
+
+      .demo-cover.dark {
+        background: repeating-linear-gradient(
+          45deg,
+          #272318 0,
+          #272318 0.3rem,
+          #383226 0.3rem,
+          #383226 0.6rem
+        );
+      }
+
+      .shop-demo-copy {
+        display: grid;
+        gap: 0.12rem;
+        min-width: 0;
+      }
+
+      .shop-demo-copy strong {
+        font-size: 1.35rem;
         font-weight: 900;
       }
 
-      .splash-points dd {
+      .shop-demo-copy b {
+        font-size: 0.95rem;
+      }
+
+      .shop-demo-copy span,
+      .shop-demo-copy em {
+        color: inherit;
+        font-size: 0.78rem;
+        font-style: normal;
+        opacity: 0.86;
+      }
+
+      .shop-demo-copy em {
+        font-weight: 800;
+        opacity: 1;
+      }
+
+      .demo-number {
+        background: var(--cream);
+        border-radius: 999px;
+        color: var(--ink);
+        font-size: 0.68rem;
+        font-weight: 900;
+        padding: 0.3rem 0.5rem;
+        white-space: nowrap;
+      }
+
+      .splash-feature-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .splash-feature {
+        background: var(--paper);
+        border: 1.5px solid var(--line);
+        border-radius: 1rem;
+        padding: 1rem;
+      }
+
+      .feature-row {
+        align-items: center;
+        background: var(--cream);
+        border: 1.5px solid var(--line);
+        border-radius: 0.7rem;
+        display: grid;
+        gap: 0.55rem;
+        grid-template-columns: auto 2.15rem minmax(0, 1fr);
+        padding: 0.65rem;
+      }
+
+      .feature-row .demo-cover {
+        height: 2.8rem;
+        width: 2.15rem;
+      }
+
+      .feature-position {
+        color: var(--faint);
+        font-size: 0.8rem;
+        font-weight: 900;
+      }
+
+      .feature-row strong,
+      .feature-row small {
+        display: block;
+      }
+
+      .feature-row strong {
+        font-size: 0.8rem;
+      }
+
+      .feature-row small {
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        margin-top: 0.08rem;
+      }
+
+      .feature-chips {
+        display: none;
+      }
+
+      .splash-feature h2 {
+        font-size: 1.15rem;
+        letter-spacing: -0.04em;
+        margin: 1rem 0 0.35rem;
+      }
+
+      .splash-feature p {
+        color: var(--muted);
         line-height: 1.45;
-        margin: 0.2rem 0 0;
+        margin: 0;
       }
 
       .splash-auth {
-        align-self: start;
         background: var(--paper);
         border: 1.5px solid var(--line);
         border-top: 0.45rem solid var(--orange);
-        border-radius: 0.85rem;
-        max-width: 32rem;
+        border-radius: 1rem;
+        display: grid;
+        gap: 1.25rem;
         padding: 1.4rem;
       }
 
@@ -901,11 +1095,11 @@
         margin: 0.4rem 0 0.45rem;
       }
 
-      .splash-auth > p:not(.overline) {
+      .splash-auth p:not(.overline) {
         color: var(--muted);
         font-size: 0.92rem;
         line-height: 1.5;
-        margin: 0 0 1.25rem;
+        margin: 0;
       }
 
       .button-link {
@@ -1033,13 +1227,60 @@
 
       @media (min-width: 760px) {
         .splash-page {
-          align-items: start;
-          grid-template-columns: minmax(0, 1fr) minmax(20rem, 28rem);
-          margin-top: 3.5rem;
+          grid-template-columns: minmax(0, 1.15fr) minmax(23rem, 0.85fr);
+          margin-top: 4.5rem;
+        }
+
+        .splash-feature-grid,
+        .splash-auth {
+          grid-column: 1 / -1;
+        }
+
+        .splash-feature-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .splash-auth {
-          margin-top: 0.65rem;
+          align-items: start;
+          grid-template-columns: minmax(0, 1fr) minmax(20rem, 28rem);
+          justify-self: stretch;
+        }
+
+        .feature-row {
+          grid-template-columns: auto 2.15rem minmax(0, 1fr) auto;
+        }
+
+        .feature-chips {
+          display: flex;
+          gap: 0.2rem;
+        }
+
+        .feature-chips i {
+          border: 1.5px solid var(--ghost-line);
+          border-radius: 999px;
+          color: var(--faint);
+          font-size: 0.56rem;
+          font-style: normal;
+          font-weight: 900;
+          padding: 0.2rem 0.3rem;
+        }
+
+        .feature-chips.selected i:nth-child(2) {
+          background: var(--ink);
+          border-color: var(--ink);
+          color: var(--cream);
+        }
+
+        .feature-chips.selected i:nth-child(3),
+        .feature-chips.wanted i:first-child {
+          background: var(--blue);
+          border-color: var(--blue);
+          color: var(--cream);
+        }
+
+        .feature-chips.wanted i:first-child {
+          background: var(--orange);
+          border-color: var(--orange);
         }
 
         .cards {
@@ -1122,7 +1363,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="{% if splash_page %}splash-body{% endif %}">
     <header class="site-header">
       <div class="site-header-inner">
         <nav class="top-nav">
@@ -1134,12 +1375,13 @@
             />
             Shelfpath
           </a>
+          {% if not splash_page %}
           <a
             class="{% if nav_section == 'shelf' %}active{% endif %}"
             href="{{ url_for('index') }}"
             >Shelf</a
           >
-          {% if current_user %}
+          {% endif %} {% if current_user %}
           <a
             class="nav-secondary {% if nav_section == 'lists' %}active{% endif %}"
             href="{{ url_for('lists') }}"
@@ -1205,6 +1447,7 @@
           </details>
           {% else %}
           <a
+            class="{% if splash_page %}splash-sign-in{% endif %}"
             href="{% if splash_page %}#sign-in{% else %}{{ url_for('login') }}{% endif %}"
             >Sign in</a
           >

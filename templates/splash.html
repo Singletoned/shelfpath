@@ -5,33 +5,97 @@ shelf{% endblock title %} {% block content %}
     <p class="overline">YOUR BOOKS, IN ORDER</p>
     <h1>Know whether to buy it before you leave the shop.</h1>
     <p class="splash-lede">
-      Shelfpath keeps series in order and makes your wanted, owned, and read
-      books clear at a glance.
+      You’re holding book something-or-other of a series you half-own. Shelfpath
+      answers in seconds: what number it is, and whether it’s already on your
+      shelf.
     </p>
-    <dl class="splash-points">
-      <div>
-        <dt>Find the number</dt>
-        <dd>See exactly where a book belongs in its series.</dd>
-      </div>
-      <div>
-        <dt>Check your shelf</dt>
-        <dd>Mark books wanted, owned, or read—independently.</dd>
-      </div>
-      <div>
-        <dt>Share the list</dt>
-        <dd>Keep a collecting list with the people you shop with.</dd>
-      </div>
-    </dl>
+    <p class="splash-action">
+      <a class="splash-cta" href="#sign-in">Start your shelf</a>
+      <span>Free · sign in with email</span>
+    </p>
   </div>
 
-  <aside class="splash-auth" id="sign-in" aria-labelledby="splash-auth-title">
-    <p class="overline">START YOUR SHELF</p>
-    <h2 id="splash-auth-title">Sign in or create an account</h2>
-    <p>
-      Use your email address. New here? Your first link creates your Shelfpath
-      account.
-    </p>
-    {% include "_email_auth_form.html" %}
-  </aside>
+  <div class="shop-demo" aria-label="Example Shelfpath shop check result">
+    <div class="shop-demo-search">
+      <span aria-hidden="true">⌕</span> guards gua<span class="demo-caret"
+        >|</span
+      >
+    </div>
+    <div class="shop-demo-result shop-demo-wanted">
+      <div class="demo-cover" aria-hidden="true"></div>
+      <div class="shop-demo-copy">
+        <strong>WANTED</strong>
+        <b>Guards! Guards!</b>
+        <span>Discworld · Terry Pratchett</span>
+        <em>Buy it — you don't own this one.</em>
+      </div>
+      <span class="demo-number">#8 OF 41</span>
+    </div>
+    <div class="shop-demo-result shop-demo-owned">
+      <div class="demo-cover dark" aria-hidden="true"></div>
+      <div class="shop-demo-copy">
+        <b>The Last Guardian</b>
+        <span>Artemis Fowl #8 · Eoin Colfer</span>
+      </div>
+      <span class="demo-number">OWNED · SKIP</span>
+    </div>
+  </div>
+
+  <div class="splash-feature-grid">
+    <article class="splash-feature">
+      <div class="feature-row">
+        <span class="feature-position">6</span
+        ><span class="demo-cover" aria-hidden="true"></span>
+        <span><strong>Wyrd Sisters</strong><small>1988</small></span>
+        <span class="feature-chips"><i>WANT</i><i>OWN</i><i>READ</i></span>
+      </div>
+      <h2>Find the number</h2>
+      <p>
+        Every series in reading or publication order, so you know exactly where
+        a book belongs.
+      </p>
+    </article>
+    <article class="splash-feature">
+      <div class="feature-row">
+        <span class="feature-position">7</span
+        ><span class="demo-cover" aria-hidden="true"></span>
+        <span><strong>Pyramids</strong><small>1989</small></span>
+        <span class="feature-chips selected"
+          ><i>WANT</i><i>OWN</i><i>READ</i></span
+        >
+      </div>
+      <h2>Mark it your way</h2>
+      <p>
+        Wanted, owned, and read are independent — a book can be read but still
+        wanted.
+      </p>
+    </article>
+    <article class="splash-feature">
+      <div class="feature-row">
+        <span class="feature-position">8</span
+        ><span class="demo-cover" aria-hidden="true"></span>
+        <span><strong>Guards! Guards!</strong><small>1989</small></span>
+        <span class="feature-chips wanted"
+          ><i>WANT</i><i>OWN</i><i>READ</i></span
+        >
+      </div>
+      <h2>Shop with someone</h2>
+      <p>
+        Two people can keep one collecting list — set it up once, then see the
+        same shelf.
+      </p>
+    </article>
+  </div>
+
+  <section class="splash-auth" id="sign-in" aria-labelledby="splash-auth-title">
+    <div>
+      <p class="overline">START YOUR SHELF</p>
+      <h2 id="splash-auth-title">Sign in or create an account</h2>
+      <p>
+        Use your email address. Your first link creates your Shelfpath account.
+      </p>
+    </div>
+    <div>{% include "_email_auth_form.html" %}</div>
+  </section>
 </section>
 {% endblock content %}
