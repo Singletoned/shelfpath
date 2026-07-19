@@ -216,6 +216,23 @@ class AppTests(unittest.TestCase):
             self.assertNotIn('name="wanted"', next_up_html)
             self.assertNotIn('name="owned"', next_up_html)
 
+    def test_home_does_not_recommend_a_book_before_an_unread_predecessor(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            data_dir = Path(temp_dir)
+            self._write_data(data_dir)
+            state_path = data_dir / "state.yaml"
+            with state_path.open(encoding="utf-8") as handle:
+                state = yaml.safe_load(handle)
+            state["books"]["example-series/second-book"]["read"] = False
+            self._write_yaml(state_path, state)
+            client = TestClient(self._create_file_app(data_dir))
+
+            response = client.get("/")
+
+            self.assertEqual(response.status_code, 200)
+            self.assertNotIn("Aardvark Book", response.text)
+            self.assertNotIn('class="next-up-list"', response.text)
+
     def test_home_series_card_is_a_single_full_card_link(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             data_dir = Path(temp_dir)

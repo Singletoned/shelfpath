@@ -700,9 +700,12 @@ def _sorted_series(series, sort_order):
 def _next_up_books(library):
     next_up = []
     for series in library["series"]:
-        for book in series["books"]:
-            if book["owned"] and not book["read"]:
+        earlier_books_are_read = True
+        for book in sorted(series["books"], key=lambda item: item["position"]):
+            if earlier_books_are_read and book["owned"] and not book["read"]:
                 next_up.append({"book": book, "series": series})
+            if not book["read"]:
+                earlier_books_are_read = False
     return sorted(
         next_up,
         key=lambda item: (item["series"]["title"].casefold(), item["book"]["position"]),

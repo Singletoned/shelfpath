@@ -79,6 +79,7 @@ Reuse this layout wherever books appear:
 - Series cards: paper background, light border, 14px radius, 16px padding. The whole card is the link to the series; do not make only its title clickable.
 - Card shows title, author, wanted count in orange, stacked progress bar, and small legend.
 - Progress colors: read = blue, owned-unread = ink, track = light cream.
+- **Next up:** on desktop, show a narrow right-hand list for the active Shelfpath list; on mobile it follows the series cards. An entry is eligible only when it is owned and unread *and* every lower-positioned book in that series is marked read. This produces at most one next-up book per series, never recommends a book out of sequence, and permits earlier books read without ownership. The only status control in this list is the READ pill, which saves immediately.
 
 ### Series detail
 
