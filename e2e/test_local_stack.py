@@ -12,7 +12,7 @@ from booksequencer.invitations import create_invitation_token
 
 BASE_URL = os.environ.get("SHELFPATH_E2E_BASE_URL", "http://shelfpath:8731")
 SUPABASE_URL = os.environ.get("SHELFPATH_E2E_SUPABASE_URL", "http://supabase_kong_shelfpath:8000")
-MAILPIT_URL = "http://mailpit:8025"
+RESEND_URL = os.environ["SHELFPATH_E2E_RESEND_URL"]
 
 
 class LocalStackE2ETests(unittest.TestCase):
@@ -89,7 +89,7 @@ class LocalStackE2ETests(unittest.TestCase):
                 owner.get_by_role("button", name="Send invite").click()
 
                 expect(owner.get_by_text(f"Invitation sent to {recipient_email}.")).to_be_visible()
-                messages = _json_get(f"{MAILPIT_URL}/api/v1/messages")
+                messages = _json_get(f"{RESEND_URL}/messages")
                 self.assertIn(recipient_email, json.dumps(messages))
                 self.assertIn("You were invited", json.dumps(messages))
 

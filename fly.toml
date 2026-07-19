@@ -9,7 +9,6 @@ OPENAI_MODEL = "gpt-4.1-mini"
 SHELFPATH_DEBUG = "false"
 SHELFPATH_MAIL_FROM = "Shelfpath <noreply@shelfpath.app>"
 SHELFPATH_PUBLIC_URL = "https://shelfpath.app"
-SHELFPATH_SMTP_PORT = "587"
 SHELFPATH_STORAGE = "supabase"
 SUPABASE_URL = "https://pkrxfruhnjsifclnhjyc.supabase.co"
 

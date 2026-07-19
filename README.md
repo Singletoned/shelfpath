@@ -92,7 +92,7 @@ With `SHELFPATH_DEBUG=true`, visiting `/login` initially signs in as that existi
 
 List owners open **Lists**, choose **Manage people**, then enter an email address and choose **Can update** or **View only**. Shelfpath emails a signed, seven-day invitation link. The recipient opens that link and signs in with the invited email address; only then does Shelfpath grant access and select the shared list. Owners can change an active member’s access or remove them. Stateless invitation links cannot be individually cancelled or tracked before acceptance.
 
-Sending invitations requires SMTP and `SHELFPATH_INVITATION_TOKEN_SECRET`. The local Docker stack includes Mailpit at <http://127.0.0.1:8025/>; production requires `SHELFPATH_SMTP_HOST`, `SHELFPATH_SMTP_PORT`, `SHELFPATH_SMTP_USERNAME`, `SHELFPATH_SMTP_PASSWORD`, `SHELFPATH_MAIL_FROM`, `SHELFPATH_PUBLIC_URL`, `SHELFPATH_INVITATION_TOKEN_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`. These credentials belong only in Fly.io secrets, never in the repository.
+Sending invitations uses the Resend API and requires `RESEND_API_KEY` plus `SHELFPATH_INVITATION_TOKEN_SECRET`. Local Docker stacks use a Resend-compatible test stub; production requires `RESEND_API_KEY`, `SHELFPATH_MAIL_FROM`, `SHELFPATH_PUBLIC_URL`, `SHELFPATH_INVITATION_TOKEN_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY`. These credentials belong only in Fly.io secrets, never in the repository.
 
 ## Fly.io deployment
 
@@ -104,14 +104,12 @@ Set these Fly secrets before the first deploy:
 SHELFPATH_SESSION_SECRET
 SUPABASE_PUBLISHABLE_KEY
 OPENAI_API_KEY
-SHELFPATH_SMTP_HOST
-SHELFPATH_SMTP_USERNAME
-SHELFPATH_SMTP_PASSWORD
+RESEND_API_KEY
 SHELFPATH_INVITATION_TOKEN_SECRET
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-`fly.toml` holds non-secret production settings, including the Supabase URL, public Shelfpath URL, mail sender, and SMTP port. Do not add secrets to it. Configure `FLY_API_TOKEN` as a GitHub Actions repository secret for automated deploys.
+`fly.toml` holds non-secret production settings, including the Supabase URL, public Shelfpath URL, and mail sender. Do not add secrets to it. Configure `FLY_API_TOKEN` as a GitHub Actions repository secret for automated deploys.
 
 ## Supabase setup
 
@@ -249,7 +247,7 @@ In Supabase Auth URL configuration, add the deployed Render URL and later `https
 
 - `/health` is an unauthenticated container health endpoint.
 - `/login` signs in with Supabase magic-link auth.
-- `/lists` chooses the active collecting list and lets owners share a list by email as an editor or viewer. If the email address does not have a Supabase account yet, Shelfpath records a pending invitation that is accepted automatically when that person signs in.
+- `/lists` chooses the active collecting list and lets owners email signed seven-day invitations with editor or viewer access. The recipient must open the link while signed in as the invited email address before access is granted.
 - `/suggest` lets allow-listed logged-in users ask OpenAI to investigate a new ordered series, review the proposed books and provenance, then approve or reject the proposal.
 - Book rows show cached Open Library covers when `books.openlibrary_cover_id` is populated and the image has been downloaded to `static/covers/`, fall back to Open Library when uncached, and show a striped placeholder otherwise.
 - `/` lists series and progress.

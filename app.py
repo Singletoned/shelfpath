@@ -251,7 +251,7 @@ async def list_share_post(request):
     sender = request.app.state.invitation_email_sender
     secret = request.app.state.settings.invitation_token_secret
     if sender is None:
-        raise ValueError("SHELFPATH_SMTP_HOST must be configured before sending invitations.")
+        raise ValueError("RESEND_API_KEY must be configured before sending invitations.")
     if secret is None:
         raise ValueError(
             "SHELFPATH_INVITATION_TOKEN_SECRET must be configured before sending invitations."
@@ -560,14 +560,12 @@ async def _user_for_request(request):
 
 
 def _invitation_email_sender(settings: Settings) -> InvitationEmailSender | None:
-    if settings.smtp_host is None:
+    if settings.resend_api_key is None:
         return None
     return InvitationEmailSender(
-        settings.smtp_host,
-        settings.smtp_port,
-        settings.smtp_username,
-        settings.smtp_password,
+        settings.resend_api_key,
         settings.mail_from,
+        settings.resend_api_url,
     )
 
 

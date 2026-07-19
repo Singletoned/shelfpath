@@ -15,8 +15,8 @@ services:
     environment:
       SHELFPATH_STORAGE: supabase
       SUPABASE_URL: http://supabase_kong_shelfpath:8000
-      SHELFPATH_SMTP_HOST: mailpit
-      SHELFPATH_SMTP_PORT: 1025
+      RESEND_API_KEY: local-development-resend-key
+      SHELFPATH_RESEND_API_URL: http://resend-stub:8080
       SHELFPATH_MAIL_FROM: Shelfpath <noreply@shelfpath.test>
       SHELFPATH_PUBLIC_URL: http://127.0.0.1:8731
       SHELFPATH_INVITATION_TOKEN_SECRET: local-development-invitation-secret
@@ -32,7 +32,7 @@ services:
       start_period: 10s
     init: true
     depends_on:
-      mailpit:
+      resend-stub:
         condition: service_healthy
     networks:
       - app
@@ -42,15 +42,18 @@ services:
     volumes:
       - .:/app
 
-  mailpit:
-    image: axllent/mailpit:v1.27
+  resend-stub:
+    image: python:3.12-alpine
+    command: python /workspace/tests/resend_stub.py
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://127.0.0.1:8025/readyz"]
+      test: ["CMD", "wget", "--spider", "http://127.0.0.1:8080/health"]
       interval: 5s
       timeout: 3s
       retries: 12
     networks:
       - app
+    volumes:
+      - .:/workspace:ro
     ports:
       - 127.0.0.1:8025:8025
 
