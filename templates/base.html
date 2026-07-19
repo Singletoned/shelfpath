@@ -836,6 +836,78 @@
         margin: 0.75rem 0 0;
       }
 
+      .splash-page {
+        display: grid;
+        gap: 2.5rem;
+        margin: 1.5rem 0 2rem;
+      }
+
+      .splash-hero {
+        max-width: 42rem;
+      }
+
+      .splash-hero h1 {
+        font-size: clamp(2.4rem, 8vw, 4.8rem);
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+        margin: 0.55rem 0 1.15rem;
+      }
+
+      .splash-lede {
+        color: var(--muted);
+        font-size: 1.1rem;
+        line-height: 1.55;
+        margin: 0;
+        max-width: 36rem;
+      }
+
+      .splash-points {
+        border-top: 1.5px solid var(--strong-line);
+        display: grid;
+        gap: 0;
+        margin: 2.25rem 0 0;
+      }
+
+      .splash-points div {
+        border-bottom: 1.5px solid var(--line);
+        padding: 0.85rem 0;
+      }
+
+      .splash-points dt {
+        font-size: 0.92rem;
+        font-weight: 900;
+      }
+
+      .splash-points dd {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.45;
+        margin: 0.2rem 0 0;
+      }
+
+      .splash-auth {
+        align-self: start;
+        background: var(--paper);
+        border: 1.5px solid var(--line);
+        border-top: 0.45rem solid var(--orange);
+        border-radius: 0.85rem;
+        max-width: 32rem;
+        padding: 1.4rem;
+      }
+
+      .splash-auth h2 {
+        font-size: 1.4rem;
+        letter-spacing: -0.03em;
+        margin: 0.4rem 0 0.45rem;
+      }
+
+      .splash-auth > p:not(.overline) {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+        margin: 0 0 1.25rem;
+      }
+
       .button-link {
         align-items: center;
         background: var(--ink);
@@ -960,6 +1032,16 @@
       }
 
       @media (min-width: 760px) {
+        .splash-page {
+          align-items: start;
+          grid-template-columns: minmax(0, 1fr) minmax(20rem, 28rem);
+          margin-top: 3.5rem;
+        }
+
+        .splash-auth {
+          margin-top: 0.65rem;
+        }
+
         .cards {
           grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
         }
@@ -1068,7 +1150,7 @@
             href="{{ url_for('suggest') }}"
             >Suggest series</a
           >
-          {% endif %}
+          {% endif %} {% if not splash_page %}
           <form
             class="header-search"
             method="get"
@@ -1085,7 +1167,8 @@
               placeholder="Check a book…"
             />
           </form>
-          {% if current_user %} {% if library and library.lists|length > 1 %}
+          {% endif %} {% if current_user %} {% if library and
+          library.lists|length > 1 %}
           <form
             method="post"
             action="{{ url_for('list_select') }}"
@@ -1121,7 +1204,10 @@
             </div>
           </details>
           {% else %}
-          <a href="{{ url_for('login') }}">Sign in</a>
+          <a
+            href="{% if splash_page %}#sign-in{% else %}{{ url_for('login') }}{% endif %}"
+            >Sign in</a
+          >
           {% endif %}
         </nav>
       </div>

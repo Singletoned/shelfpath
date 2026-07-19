@@ -1,0 +1,37 @@
+{% extends "base.html" %} {% block title %}Shelfpath · Know what belongs on your
+shelf{% endblock title %} {% block content %}
+<section class="splash-page">
+  <div class="splash-hero">
+    <p class="overline">YOUR BOOKS, IN ORDER</p>
+    <h1>Know whether to buy it before you leave the shop.</h1>
+    <p class="splash-lede">
+      Shelfpath keeps series in order and makes your wanted, owned, and read
+      books clear at a glance.
+    </p>
+    <dl class="splash-points">
+      <div>
+        <dt>Find the number</dt>
+        <dd>See exactly where a book belongs in its series.</dd>
+      </div>
+      <div>
+        <dt>Check your shelf</dt>
+        <dd>Mark books wanted, owned, or read—independently.</dd>
+      </div>
+      <div>
+        <dt>Share the list</dt>
+        <dd>Keep a collecting list with the people you shop with.</dd>
+      </div>
+    </dl>
+  </div>
+
+  <aside class="splash-auth" id="sign-in" aria-labelledby="splash-auth-title">
+    <p class="overline">START YOUR SHELF</p>
+    <h2 id="splash-auth-title">Sign in or create an account</h2>
+    <p>
+      Use your email address. New here? Your first link creates your Shelfpath
+      account.
+    </p>
+    {% include "_email_auth_form.html" %}
+  </aside>
+</section>
+{% endblock content %}

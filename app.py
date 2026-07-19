@@ -42,7 +42,19 @@ async def health_get(request):
 async def index_get(request):
     user = await _user_for_request(request)
     if _requires_auth(request.app, user):
-        return redirect_to_login(request)
+        settings = request.app.state.settings
+        return templates.TemplateResponse(
+            request,
+            "splash.html",
+            _context(
+                request,
+                splash_page=True,
+                local_auth_enabled=_local_auth_enabled(settings),
+                next_url="/",
+                supabase_url=settings.supabase_url,
+                supabase_publishable_key=settings.supabase_publishable_key,
+            ),
+        )
     library = await _library_for_request(request, user)
     _remember_active_list(request, library)
     return templates.TemplateResponse(request, "index.html", _context(request, library=library))

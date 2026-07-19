@@ -56,15 +56,17 @@ class AppTests(unittest.TestCase):
             self.assertEqual(post_response.headers["location"], "/shop")
             self.assertNotIn("Second Book", client.get("/shop").text)
 
-    def test_supabase_storage_redirects_anonymous_users_to_login(self):
+    def test_supabase_storage_shows_anonymous_users_the_splash_page(self):
         settings = self._settings(Path("unused"), storage="supabase")
         app = app_module.create_app(settings=settings, store=FailingStore())
         client = TestClient(app)
 
         response = client.get("/", follow_redirects=False)
 
-        self.assertEqual(response.status_code, 303)
-        self.assertEqual(response.headers["location"], "/login?next=/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Know whether to buy it", response.text)
+        self.assertIn("Sign in or create an account", response.text)
+        self.assertIn('id="login-form"', response.text)
 
     def test_login_page_uses_a_constrained_spaced_form(self):
         settings = self._settings(Path("unused"), storage="supabase")
@@ -134,8 +136,8 @@ class AppTests(unittest.TestCase):
         self.assertEqual(logout_response.headers["location"], "/login?local_signed_out=1")
         self.assertEqual(signed_out_page.status_code, 200)
         self.assertIn("Sign in as local test user", signed_out_page.text)
-        self.assertEqual(protected_response.status_code, 303)
-        self.assertEqual(protected_response.headers["location"], "/login?next=/")
+        self.assertEqual(protected_response.status_code, 200)
+        self.assertIn("Sign in or create an account", protected_response.text)
         self.assertEqual(sign_in_response.status_code, 303)
         self.assertEqual(sign_in_response.headers["location"], "/shop")
 

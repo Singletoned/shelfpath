@@ -65,6 +65,13 @@ Reuse this layout wherever books appear:
 
 ## Screens
 
+### Public landing / sign in
+
+- Anonymous visitors see a compact, single-purpose splash page at `/`, not a redirect to a separate sign-in screen.
+- The page states the shop-check benefit first, then explains only three practical tasks: series position, book status, and shared lists.
+- The email magic-link form is part of the page and explicitly serves both sign-in and account creation. Do not imply a separate password registration flow.
+- Avoid product screenshots, generic feature-card grids, and social proof: this is a personal utility, so a clear benefit and immediate email action are more useful.
+
 ### Shelf / Home
 
 - Orange header with the Shelfpath book-mark icon immediately before the Shelfpath wordmark and a cream search link to shop check.
