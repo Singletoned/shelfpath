@@ -10,6 +10,12 @@ check:
 run:
     uv run --env-file .env uvicorn app:app --reload --host 127.0.0.1 --port 8731
 
+db-migrate:
+    PYTHONPATH=. uv run --env-file .env python scripts/migrate_database.py
+
+postgres-migration-test:
+    ./scripts/test_postgres_migrations.sh
+
 local-supabase-start:
     supabase start
     supabase migration up --local

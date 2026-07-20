@@ -1,0 +1,30 @@
+name: shelfpath-postgres-migrations
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: shelfpath
+      POSTGRES_PASSWORD: shelfpath-test-password
+      POSTGRES_USER: shelfpath
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shelfpath -d shelfpath"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+  migrate:
+    build:
+      context: ..
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        /opt/shelfpath-venv/bin/python scripts/migrate_database.py
+        /opt/shelfpath-venv/bin/python scripts/migrate_database.py
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://shelfpath:shelfpath-test-password@postgres:5432/shelfpath

@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "httpx",
+  "psycopg[binary]>=3.3.4",
   "pyyaml",
   "sentry-sdk>=2.66.0",
   "starlette[full]",
