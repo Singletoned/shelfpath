@@ -1,11 +1,11 @@
-{% extends "base.html" %}
-{% import "_book_ui.html" as book_ui %}
-{% set guards = {"title": "Guards! Guards!", "position": 8, "wanted": true, "owned": false, "read": false} %}
-{% set guardian = {"title": "The Last Guardian", "position": 8, "wanted": false, "owned": true, "read": true} %}
-{% set wyrd_sisters = {"title": "Wyrd Sisters", "position": 6, "wanted": true, "owned": false, "read": true} %}
-{% set pyramids = {"title": "Pyramids", "position": 7, "wanted": false, "owned": true, "read": false} %}
-{% block title %}Shelfpath · Know what belongs on your
-shelf{% endblock title %} {% block content %}
+{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% set guards
+= {"title": "Guards! Guards!", "position": 8, "wanted": true, "owned": false,
+"read": false} %} {% set guardian = {"title": "The Last Guardian", "position":
+8, "wanted": false, "owned": true, "read": true} %} {% set wyrd_sisters =
+{"title": "Wyrd Sisters", "position": 6, "wanted": true, "owned": false, "read":
+true} %} {% set pyramids = {"title": "Pyramids", "position": 7, "wanted": false,
+"owned": true, "read": false} %} {% block title %}Shelfpath · Know what belongs
+on your shelf{% endblock title %} {% block content %}
 <section class="splash-page">
   <div class="splash-hero">
     <p class="overline">Track the gaps in your shelf</p>

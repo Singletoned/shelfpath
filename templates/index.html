@@ -1,5 +1,5 @@
-{% extends "base.html" %} {% import "_book_ui.html" as book_ui %}
-{% block title %}Shelf · Shelfpath{% endblock title %} {% block content %}
+{% extends "base.html" %} {% import "_book_ui.html" as book_ui %} {% block title
+%}Shelf · Shelfpath{% endblock title %} {% block content %}
 <div class="shelf-layout">
   <section class="shelf-series" aria-labelledby="my-series-title">
     <p class="overline">My series</p>
@@ -20,13 +20,17 @@
             </div>
             <div class="wanted-count">{{ series.wanted_count }} wanted</div>
           </div>
-          {% set read_percent = (series.read_count / series.book_count * 100) if series.book_count else 0 %}
-          {% set owned_unread = series.owned_count - series.read_count %}
-          {% if owned_unread < 0 %}{% set owned_unread = 0 %}{% endif %}
-          {% set owned_percent = (owned_unread / series.book_count * 100) if series.book_count else 0 %}
+          {% set read_percent = (series.read_count / series.book_count * 100) if
+          series.book_count else 0 %} {% set owned_unread = series.owned_count -
+          series.read_count %} {% if owned_unread < 0 %}{% set owned_unread = 0
+          %}{% endif %} {% set owned_percent = (owned_unread / series.book_count
+          * 100) if series.book_count else 0 %}
           <div class="progress-track" aria-hidden="true">
             <div class="progress-read" style="width: {{ read_percent }}%"></div>
-            <div class="progress-owned" style="width: {{ owned_percent }}%"></div>
+            <div
+              class="progress-owned"
+              style="width: {{ owned_percent }}%"
+            ></div>
           </div>
           <div class="legend-row">
             <span>{{ series.read_count }} read</span>
@@ -37,7 +41,9 @@
       </li>
       {% endfor %}
       <li>
-        <a class="card add-series-card" href="{{ url_for('suggest') }}">+ Add a series</a>
+        <a class="card add-series-card" href="{{ url_for('suggest') }}"
+          >+ Add a series</a
+        >
       </li>
     </ul>
   </section>
@@ -57,10 +63,20 @@
         {{ book_ui.cover(item.book) }}
         <div class="book-main">
           <div>
-            <div class="book-title"><a href="{{ url_for('series', series_id=item.series.id) }}">{{ item.book.title }}</a></div>
-            <div class="book-meta">{{ item.series.title }}{% if item.book.author and item.book.author != item.series.author %} · {{ item.book.author }}{% endif %}</div>
+            <div class="book-title">
+              <a href="{{ url_for('series', series_id=item.series.id) }}"
+                >{{ item.book.title }}</a
+              >
+            </div>
+            <div class="book-meta">
+              {{ item.series.title }}{% if item.book.author and item.book.author
+              != item.series.author %} · {{ item.book.author }}{% endif %}
+            </div>
           </div>
-          {{ book_ui.state_controls(item.book, url_for('book_state', book_key=item.book['key']), url_for('index'), library.current_list.role == 'viewer', include_wanted=False, include_owned=False) }}
+          {{ book_ui.state_controls(item.book, url_for('book_state',
+          book_key=item.book['key']), url_for('index'),
+          library.current_list.role == 'viewer', include_wanted=False,
+          include_owned=False) }}
         </div>
       </article>
       {% endfor %}
@@ -68,5 +84,7 @@
   </aside>
   {% endif %}
 </div>
-<p class="attribution">Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.</p>
+<p class="attribution">
+  Some covers provided by <a href="https://openlibrary.org/">Open Library</a>.
+</p>
 {% endblock content %}
