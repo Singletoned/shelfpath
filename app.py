@@ -21,6 +21,7 @@ from booksequencer.invitations import (
     create_invitation_token,
     verify_invitation_token,
 )
+from booksequencer.observability import configure_sentry
 from booksequencer.store import SUGGESTION_DAILY_LIMIT, Store, build_store
 
 HTTP_SEE_OTHER = 303
@@ -469,6 +470,7 @@ def create_app(
     ai_series_investigator=None,
 ) -> Starlette:
     resolved_settings = settings or load_settings()
+    configure_sentry(resolved_settings)
     resolved_store = store or build_store(
         resolved_settings.storage,
         resolved_settings.data_dir,

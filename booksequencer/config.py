@@ -30,6 +30,8 @@ class Settings:
     mail_from: str
     public_url: str
     invitation_token_secret: str | None
+    sentry_dsn: str | None
+    sentry_environment: str
 
 
 def load_settings() -> Settings:
@@ -54,6 +56,8 @@ def load_settings() -> Settings:
         mail_from=os.environ.get("SHELFPATH_MAIL_FROM", "Shelfpath <noreply@shelfpath.app>"),
         public_url=os.environ.get("SHELFPATH_PUBLIC_URL", "https://shelfpath.app"),
         invitation_token_secret=_optional_env("SHELFPATH_INVITATION_TOKEN_SECRET"),
+        sentry_dsn=_optional_env("SENTRY_DSN"),
+        sentry_environment=os.environ.get("SENTRY_ENVIRONMENT", _default_sentry_environment()),
     )
 
 
@@ -68,6 +72,12 @@ def _default_storage(publishable_key: str | None) -> str:
     if publishable_key:
         return "supabase"
     return "file"
+
+
+def _default_sentry_environment() -> str:
+    if os.environ.get("FLY_APP_NAME"):
+        return "production"
+    return "development"
 
 
 def _default_debug() -> str:

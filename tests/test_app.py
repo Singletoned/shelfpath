@@ -420,6 +420,8 @@ class AppTests(unittest.TestCase):
             mail_from="Shelfpath <noreply@example.test>",
             public_url="http://testserver",
             invitation_token_secret="invitation-test-secret",
+            sentry_dsn=None,
+            sentry_environment="test",
         )
 
     def _write_data(self, data_dir: Path) -> None:

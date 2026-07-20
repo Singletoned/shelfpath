@@ -107,7 +107,10 @@ OPENAI_API_KEY
 RESEND_API_KEY
 SHELFPATH_INVITATION_TOKEN_SECRET
 SUPABASE_SERVICE_ROLE_KEY
+SENTRY_DSN
 ```
+
+`SENTRY_DSN` enables error reporting through Sentry; it is optional locally and must be a Fly secret in production. Set `SENTRY_ENVIRONMENT` only when the default (`development` locally, `production` on Fly) is unsuitable.
 
 `fly.toml` holds non-secret production settings, including the Supabase URL, public Shelfpath URL, and mail sender. Do not add secrets to it. Configure `FLY_API_TOKEN` as a GitHub Actions repository secret for automated deploys.
 

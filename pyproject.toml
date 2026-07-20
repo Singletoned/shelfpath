@@ -4,7 +4,13 @@ version = "0.1.0"
 description = "Ordered book series and shared collecting list tracker"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["httpx", "pyyaml", "starlette[full]", "uvicorn"]
+dependencies = [
+  "httpx",
+  "pyyaml",
+  "sentry-sdk>=2.66.0",
+  "starlette[full]",
+  "uvicorn",
+]
 
 [tool.ruff]
 fix = true
