@@ -5,7 +5,7 @@ check:
     ruff format .
     ruff check . --fix
     taidy .
-    python -m unittest discover -s tests
+    uv run python -m unittest discover -s tests
 
 run:
     uv run --env-file .env uvicorn app:app --reload --host 127.0.0.1 --port 8731
@@ -37,13 +37,8 @@ local-run:
 local-reset-and-run:
     ./scripts/run_local_stack.sh --reset
 
-local-e2e:
-    ./scripts/run_local_stack.sh --reset --e2e
-
 local-run-stop:
-    docker compose --env-file local-supabase.env --file tests/compose.yaml down
-    docker compose --env-file local-supabase.env --file compose.yaml down
-    supabase stop
+    docker compose --file compose.yaml down
 
 local-covers-fetch:
     env -u SUPABASE_URL -u SUPABASE_PUBLISHABLE_KEY -u SUPABASE_ANON_KEY -u SUPABASE_SERVICE_ROLE_KEY -u SHELFPATH_LOCAL_AUTH_EMAIL -u SHELFPATH_LOCAL_AUTH_PASSWORD -u SHELFPATH_STORAGE PYTHONPATH=. uv run --env-file local-supabase.env python scripts/fetch_openlibrary_covers.py

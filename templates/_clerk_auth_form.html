@@ -1,0 +1,40 @@
+{% if not clerk_publishable_key %}
+<p class="warning">Clerk is not configured for this environment.</p>
+{% else %}
+<div id="login-form" class="login-form" data-next-url="{{ next_url }}">
+  <div class="clerk-auth-form">
+    <p id="clerk-login-message" aria-live="polite">Loading secure sign-in…</p>
+  </div>
+</div>
+<script
+  async
+  crossorigin="anonymous"
+  data-clerk-publishable-key="{{ clerk_publishable_key }}"
+  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+></script>
+<script>
+  window.addEventListener("load", async () => {
+    const message = document.getElementById("clerk-login-message");
+    const form = document.querySelector(".login-form");
+    const nextUrl = form?.dataset.nextUrl || "/";
+    try {
+      await window.Clerk.load();
+      if (!window.Clerk.user || !window.Clerk.session) {
+        message.textContent = "Opening sign-in…";
+        window.Clerk.openSignIn({ forceRedirectUrl: window.location.href });
+        return;
+      }
+      const token = await window.Clerk.session.getToken();
+      const response = await fetch("/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      window.location.assign(nextUrl);
+    } catch (error) {
+      message.textContent = `Sign-in failed: ${error.message}`;
+    }
+  });
+</script>
+{% endif %}

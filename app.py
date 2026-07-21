@@ -13,6 +13,7 @@ from starlette.templating import Jinja2Templates
 
 from booksequencer.ai_series import OpenAISeriesInvestigator
 from booksequencer.auth import current_user, fresh_user, redirect_to_login, verify_supabase_token
+from booksequencer.clerk_auth import ClerkConfiguration, load_clerk_user, verify_clerk_session
 from booksequencer.config import DEFAULT_TEMPLATE_DIR, Settings, load_settings
 from booksequencer.covers import COVER_ROOT, STATIC_ROOT
 from booksequencer.email import InvitationEmailSender
@@ -378,6 +379,25 @@ async def auth_callback_get(request):
 
 async def auth_session_post(request):
     settings = request.app.state.settings
+    if settings.storage == "postgres":
+        if not (
+            settings.clerk_secret_key
+            and settings.clerk_jwt_issuer
+            and settings.clerk_authorized_party
+        ):
+            raise ValueError(
+                "CLERK_SECRET_KEY, CLERK_JWT_ISSUER, and CLERK_AUTHORIZED_PARTY are required."
+            )
+        payload = await request.json()
+        token = payload.get("token")
+        if not isinstance(token, str) or not token:
+            return JSONResponse({"error": "token is required"}, status_code=400)
+        user = verify_clerk_session(
+            token,
+            ClerkConfiguration(settings.clerk_jwt_issuer, settings.clerk_authorized_party),
+        )
+        request.session["user"] = await load_clerk_user(user, settings.clerk_secret_key)
+        return JSONResponse({"ok": True})
     if not settings.supabase_url or not settings.supabase_publishable_key:
         raise ValueError("Supabase auth requires SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.")
     payload = await request.json()
@@ -477,6 +497,7 @@ def create_app(
         resolved_settings.supabase_url,
         resolved_settings.supabase_publishable_key,
         resolved_settings.supabase_service_role_key,
+        resolved_settings.database_url,
     )
     app = Starlette(
         debug=resolved_settings.debug,
@@ -566,10 +587,12 @@ def create_app(
 
 async def _user_for_request(request):
     settings = request.app.state.settings
-    if settings.storage != STORAGE_SUPABASE:
+    if settings.storage not in {STORAGE_SUPABASE, "postgres"}:
         return current_user(request)
     if _local_auth_enabled(settings) and not request.session.get(LOCAL_AUTH_SIGNED_OUT_SESSION_KEY):
         return await _sign_in_local_test_user(request)
+    if settings.storage == "postgres":
+        return current_user(request)
     return await fresh_user(
         request,
         settings.supabase_url,
@@ -589,7 +612,9 @@ def _invitation_email_sender(settings: Settings) -> InvitationEmailSender | None
 
 def _local_auth_enabled(settings: Settings) -> bool:
     return bool(
-        settings.debug and settings.local_auth_email and settings.storage == STORAGE_SUPABASE
+        settings.debug
+        and settings.local_auth_email
+        and settings.storage in {STORAGE_SUPABASE, "postgres"}
     )
 
 
@@ -660,6 +685,7 @@ def _safe_next(value) -> str:
 def _context(request, **values):
     return {
         "request": request,
+        "clerk_publishable_key": request.app.state.settings.clerk_publishable_key,
         "current_user": current_user(request),
         "nav_section": _nav_section(request),
         **values,
@@ -680,7 +706,7 @@ def _nav_section(request) -> str:
 
 
 def _requires_auth(app: Starlette, user) -> bool:
-    return app.state.settings.storage == STORAGE_SUPABASE and user is None
+    return app.state.settings.storage in {STORAGE_SUPABASE, "postgres"} and user is None
 
 
 def _find_series(library, series_id):

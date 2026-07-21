@@ -16,6 +16,11 @@ DEFAULT_SUPABASE_URL = "https://pkrxfruhnjsifclnhjyc.supabase.co"
 class Settings:
     storage: str
     data_dir: Path
+    database_url: str | None
+    clerk_publishable_key: str | None
+    clerk_secret_key: str | None
+    clerk_jwt_issuer: str | None
+    clerk_authorized_party: str | None
     supabase_url: str | None
     supabase_publishable_key: str | None
     session_secret: str
@@ -42,6 +47,11 @@ def load_settings() -> Settings:
     return Settings(
         storage=os.environ.get("SHELFPATH_STORAGE", _default_storage(publishable_key)),
         data_dir=Path(os.environ.get("SHELFPATH_DATA_DIR", DEFAULT_DATA_DIR)),
+        database_url=_optional_env("DATABASE_URL"),
+        clerk_publishable_key=_optional_env("CLERK_PUBLISHABLE_KEY"),
+        clerk_secret_key=_optional_env("CLERK_SECRET_KEY"),
+        clerk_jwt_issuer=_optional_env("CLERK_JWT_ISSUER"),
+        clerk_authorized_party=_optional_env("CLERK_AUTHORIZED_PARTY"),
         supabase_url=supabase_url,
         supabase_publishable_key=publishable_key,
         session_secret=os.environ.get("SHELFPATH_SESSION_SECRET", "development-only-change-me"),

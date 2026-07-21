@@ -138,7 +138,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(logout_response.status_code, 303)
         self.assertEqual(logout_response.headers["location"], "/login?local_signed_out=1")
         self.assertEqual(signed_out_page.status_code, 200)
-        self.assertIn("Sign in as local test user", signed_out_page.text)
+        self.assertIn("Loading secure sign-in", signed_out_page.text)
         self.assertEqual(protected_response.status_code, 200)
         self.assertIn("Sign in or create an account", protected_response.text)
         self.assertEqual(sign_in_response.status_code, 303)
@@ -406,6 +406,11 @@ class AppTests(unittest.TestCase):
         return Settings(
             storage=storage,
             data_dir=data_dir,
+            database_url="postgresql://example.test/shelfpath",
+            clerk_publishable_key="pk_test_example",
+            clerk_secret_key="sk_test_example",
+            clerk_jwt_issuer="https://clerk.example.test",
+            clerk_authorized_party="http://testserver",
             supabase_url="https://example.supabase.co",
             supabase_publishable_key="test-key",
             session_secret="test-secret",

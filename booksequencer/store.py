@@ -559,6 +559,7 @@ def build_store(
     supabase_url: str | None,
     publishable_key: str | None,
     service_role_key: str | None = None,
+    database_url: str | None = None,
 ) -> Store:
     if storage == "file":
         return FileStore(data_dir)
@@ -566,6 +567,12 @@ def build_store(
         if not supabase_url or not publishable_key:
             raise ValueError("SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required.")
         return SupabaseStore(supabase_url, publishable_key, service_role_key)
+    if storage == "postgres":
+        if not database_url:
+            raise ValueError("DATABASE_URL is required for Postgres storage.")
+        from booksequencer.postgres_store import PostgresStore
+
+        return PostgresStore(database_url)
     raise ValueError(f"Unknown storage backend: {storage}")
 
 
